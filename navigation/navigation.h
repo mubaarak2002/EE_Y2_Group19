@@ -1,38 +1,41 @@
 #include <cmath>
+#include <vector>
 
-// if both walls are within the acceptable range, move forwards
-// else if robot is slightly closer to the left wall, adjust right (turn right while maintaining movement forwards)
-    // same for if it slightly closer to the right wall
-// else if it is significantly closer to the left wall, turn right (turn left while terminating forwards movement)
-    // same for if it significantly closer the the right wall
+// use PID to control the speeds of the wheels to make the robot drive in the middle of the corridor
+
+// if it is too close to the left wall, go right (left wheel speeds up)
+// otherwise, go left (right wheel speeds up)
+
+namespace control {
+    int pid(
+            std::vector<int>& feedback,          // feedback[0] is error, feedback[1] is sum of error, feedback[2] is previous error
+            const std::vector<int>& constants    // constants: k_p, k_i, k_d
+    ) {
+        int proportional = constants[0] * feedback[0];
+        int integral = constants[1] * feedback[1];
+        int derivative = constants[2] * (feedback[0] - feedback[2]);
+
+        int pid = proportional + integral + derivative;
+        return pid;
+    }
+}
 
 namespace nav { 
-    void corridorNavigation (
-        const int& acceptableError = 5
+    std::vector<int> corridor_navigation (
+            std::vector<int> feedback,
+            const std::vector<int>& constants
     ) {
-        int leftDistance = 10;      // this is the distance between the robot and the left wall from computer vision
-        int rightDistance = 10;     // this is the distance between the robot and the right wall from computer vision
+        int left_distance = 10;      // this is the distance between the robot and the left wall from computer vision
+        int right_distance = 10;     // this is the distance between the robot and the right wall from computer vision
         
-        int midDistance = (leftDistance + rightDistance) / 2; 
-        int leftError = midDistance - leftDistance;
-        int rightError = midDistance - rightDistance;
+        int mid_distance = (left_distance + right_distance) / 2; 
+        feedback[0] = mid_distance - right_distance;
+        feedback[1] += feedback[0];
+        
+        move(control::pid(feedback, constants));        // the function adds pid to the speed of the right motor
+                                                        // and subtracts pid from the speed of the left motor
 
-        if (abs(leftError) <= acceptableError && abs(rightError) <= acceptableError) {
-            moveForward();  // sets speed of motors to move forward
-        }
-        else if (abs(leftError) > acceptableError && abs(rightError) <= acceptableError) {
-            adjustRight();  // sets speed of motors to turn right while moving forward
-        }
-        else if (abs(rightError) > acceptableError && abs(leftError) <= acceptableError) {
-            adjustLeft();   // sets speed of motors to turn left while moving forward
-        }
-        else {
-            if (leftError > rightError) {
-                turnRight();    // sets speed of motors to terminate forward movement while turning right
-            }
-            else {
-                turnLeft();     // sets speed of motors to terminate forward movement while turning left
-            }
-        }
+        feedback[2] = feedback[0];
+        return feedback;
     }
 }
