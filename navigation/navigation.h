@@ -7,7 +7,7 @@
     // same for if it significantly closer the the right wall
 
 namespace nav { 
-    void corridorNaviagtion (
+    void corridorNavigation (
         const int& acceptableError = 5
     ) {
         int leftDistance = 10;      // this is the distance between the robot and the left wall from computer vision
