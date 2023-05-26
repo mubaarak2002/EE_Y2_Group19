@@ -26,24 +26,34 @@ def camera():
 
 
 
-def photo_process(photo="./assets/TestPhoto.jpg", range={"lower": np.array([0, 0, 0]), "upper": np.array([179, 255, 255])}):
+def photo_process(range={"lower": np.array([0, 0, 0]), "upper": np.array([179, 255, 255])}, photo="./assets/TestPhoto.jpg"):
     img = cv2.imread(photo, -1)
     #maskSliders(img)
 
     #plt.imshow(img)
     #plt.show()
     #Mask(img, np.array([0, 0, 0]), np.array([255, 255, 255]))
-    Mask(img, range["lower"], range["upper"])
-
+    #Mask(img, range["lower"], range["upper"])
+    gptSliders(img)
 
 def Mask(image, lowerRange, upperRange):
     print("Channel Info: " + str(image.shape[2]))
     frame = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     
     mask = cv2.inRange(frame, lowerRange, upperRange)
-    result = cv2.bitwise_and(frame, frame, mask=mask)
+    result = cv2.bitwise_and(image, image, mask=mask)
 
-    PlotTwo(frame, result)
+    PlotTwo(image, result)
+    return result
+
+def HueMask(image, lowerHue, upperHue):
+    lower = np.array([lowerHue, 0, 0])
+    upper = np.array([upperHue, 255, 255])
+
+    frame = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    
+    mask = cv2.inRange(frame, lower, upper)
+    result = cv2.bitwise_and(image, image, mask=mask)
     return result
 
 def PlotTwo(Source, Processed):
@@ -57,14 +67,57 @@ def PlotTwo(Source, Processed):
     plt.imshow(Processed)
     plt.title("Processed")
     plt.show()
-   
-def maskSliders(image, ranges={"lower": [0, 0, 0], "upper": [179, 255, 255]}):
 
-    initValue = (ranges["lower"][0] + ranges["upper"][0])/2
+
+def gptSliders(Source, range={"lower": np.array([0, 0, 0]), "upper": np.array([255, 255, 255])}):
+
+    ranges = {"lower": npArrayToNormal(range["lower"]), "upper": npArrayToNormal(range["upper"])}
+
+    # Create the figure and axes
     fig, ax = plt.subplots()
-    im = ax.imshow(Mask(image, ranges["lower"][0], ranges["upper"][0]))
+    plt.subplots_adjust(bottom=0.25)
 
-    Hue = fig.add_axes([0.25, 0.1, 0.65, 0.03])
+    initValue = floor((ranges["lower"][0] + ranges["upper"][0])/2)
+
+    # Display the initial image
+    image_plot = ax.imshow(HueMask(Source, 0, initValue))
+
+    # Create the slider axes
+    slider_ax = plt.axes([0.2, 0.1, 0.6, 0.03])
+    
+    
+
+    # Create the sliders
+    slider = Slider(slider_ax, 'Hue', ranges["lower"][0], ranges["upper"][0], initValue)
+
+    # Function to update the image based on the slider value
+    def update_image(value):
+        masked_image = HueMask(Source, 0, value)
+        image_plot.set_data(masked_image)
+        fig.canvas.draw_idle()
+
+    # Register the update function with the slider
+    slider.on_changed(update_image)
+
+    plt.show()
+
+def hueSliderTwo(Source, range={"lower": np.array([0, 0, 0]), "upper": np.array([255, 255, 255])}):
+
+    ranges = {"lower": npArrayToNormal(range["lower"]), "upper": npArrayToNormal(range["upper"])}
+    initValue = (ranges["lower"][0] + ranges["upper"][0])/2
+    
+    rows = 1
+    columns = 2
+    fig = plt.figure(figsize=(10, 7))
+    fig.add_subplot(rows, columns, 1)
+    plt.imshow(Source)
+    plt.title("Source")
+    fig.add_subplot(rows, columns, 2)
+    Processed = HueMask(Source, range["lower"], range["upper"])
+    plt.imshow(Processed)
+    plt.title("Processed")
+
+
     print("min: " + str(ranges["lower"][0]) + " upper: " + str(ranges["upper"][0]) + " default " + str(initValue))
 
     hue_slider = Slider(
@@ -75,23 +128,26 @@ def maskSliders(image, ranges={"lower": [0, 0, 0], "upper": [179, 255, 255]}):
         valinit = initValue
     )
 
+    fig, ax = plt.subplots()
+    plt.subplots_adjust
+
+
 
     def updateMask(val):
         im = ax.imshow(Mask(image, hue_slider.val, hue_slider.val + 100))
 
     hue_slider.on_changed(updateMask)
 
-
-    
-    plt.imshow(image)
     plt.show()
 
-
+def npArrayToNormal(npArray):
+    #not needed, just becuase I forget how to do it a lot
+    return npArray.tolist()
 
 
 #OpenCV uses H: 0-179, S: 0-255, V: 0-255
 #Masks, of the form [Hue, saturation, value]
-blueRanges = {"lower": np.array([110, 50, 50]), "upper": np.array([130, 255, 255])}
+blueRanges = {"lower": np.array([90, 50, 50]), "upper": np.array([130, 255, 255])}
 redRanges = {"lower": [], "upper": []}
 greenRanges = {"lower": [], "upper": []}
 
