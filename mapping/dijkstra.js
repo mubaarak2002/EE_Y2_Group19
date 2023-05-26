@@ -66,7 +66,7 @@ function dijkstra(adjacency, start, end) {
 
     }
 
-    return "uncomplete matrix";
+    return "incomplete matrix";
 }
 
 
