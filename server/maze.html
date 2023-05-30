@@ -1,0 +1,18 @@
+<html>
+<div id="container"></div>
+<body>
+test
+<script src="/socket.io/socket.io.js"></script>
+<script>
+
+// open socket
+const socket = io("/webpage");
+
+// listen for "connection" event from webpage
+socket.on("connection", (data) => {
+  console.log(data);
+});
+
+</script>
+</body>
+</html>
