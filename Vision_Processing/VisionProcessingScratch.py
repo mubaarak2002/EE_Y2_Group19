@@ -1,6 +1,6 @@
 #Hello Fellow Group mates,
 #pls pip install numpy, opencv-python, matplotlib, for this to work.
-#NOTE: you need to use python 3.11.0, 64 bit, NOT PYTHON 10, switch at the bottom of the window on the blue bar
+#NOTE: you need to use python 3.11.0, 64 bit, NOT PYTHON 10, switch at the bottom of the window on the blue bar (not always needed)
 #NOTE: Also make sure you are in the correct directory else you dont be able to find the file
 import cv2
 import numpy as np
@@ -9,6 +9,17 @@ from matplotlib.widgets import Button, RangeSlider
 import math
 from skimage.transform import hough_line as hl
 from skimage.transform import  hough_line_peaks as hlp
+
+#ALL GLOBAL VARIABLES:
+global NUM_PATH_ANGLES
+#this is how many angles we use (the rover will round all paths into 360 degreese divided into however many angles we allow)
+NUM_PATH_ANGLES = 12
+
+global ANGLE_RANGE
+#this is the range of the field of view of the rover (0 to 180)
+ANGLE_RANGE = 180
+
+
 
 def camera():
     cap = cv2.VideoCapture(0)
@@ -292,6 +303,7 @@ def plotHoughLines(photo, hspace, theta, dist):
     ax[1].set_title('Hough transform')
     ax[1].set_xlabel('Angles (degrees)')
     ax[1].set_ylabel('Distance (pixels)')
+    #ax[1].set_xlim([0,1])
     ax[1].axis('image')
 
     ax[2].imshow(image, cmap='gray')
@@ -311,24 +323,41 @@ def plotHoughLines(photo, hspace, theta, dist):
     plt.show()
     
     
-    
-
 def hough(photo, mask):
     #detect lines in an image and return them in the form of (r, theta)
     
     #the angles to check, we assume all lines go outwards from the front of the camera
-    angles = np.linspace(0, np.pi, 180)
+    angles = np.linspace(0, np.pi, ANGLE_RANGE)
     
     hspace, theta, dist = hl(mask.sum(-1), angles)
     
-    
     #PlotTwo(cv2.imread(photo, -1), hspace)
-    #PlotTwo(mask.sum(-1), hspace)
-    plotHoughLines(photo, hspace, theta, dist)
+    #plotHoughLines(photo, hspace, theta, dist)
     
     huffSpace, angles, distnaces = hlp(hspace, theta, dist)
-    #print(str(distnaces))
+    # print(str(np.rad2deg(angles)))
 
+    #Now we have all the detected lines, we must now combine like lines into "bins"
+    bins = []
+
+    for i in range(NUM_PATH_ANGLES):
+        bins.append(math.floor(ANGLE_RANGE*((i)/NUM_PATH_ANGLES)))
+    
+    bins.append(ANGLE_RANGE)
+
+    newSpaces = {"angles": [], "distances": [], "hspace": []}
+
+
+    for space, radius, angle in hspace, dist, theta:
+        for approx in bins:
+            if (angle < approx):
+
+
+
+    print(bins)
+
+    #for distance in distnaces:
+        
 
 def HalfnHalf(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lower": np.array([0, 100, 220]), "upper": np.array([190, 180, 255]), "name": "white"}):
     #this function finds all white points with another white point on the other side.
