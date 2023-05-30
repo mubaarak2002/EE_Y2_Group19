@@ -7,7 +7,6 @@
 
 #include <Wire.h>
 #include <INA219_WE.h>
-#include <SPI.h>
 
 INA219_WE ina219; // this is the instantiation of the library for the current sensor
 int tick;
@@ -25,6 +24,21 @@ float ui_max=50, ui_min=0; //anti-windup limitation
 float current_limit = 1.0;
 float last_power_val;
 float current_power_val;
+
+  //added for MPP
+int arrCount;
+float[2][10] lastGenerated; //[ [10 last power values], [10 last delta values]
+float[5] pow_last5av;    //10th to 6th most recent power readings average
+float[5] pow_recent5av;  //most recent 5 power readings average
+float[5] delta_last5av;    //10th to 6th most recent power readings average
+float[5] delta_recent5av;  //most recent 5 power readings average
+const n = 5;    //scalable if want to log more than the last 10 values
+const nend = 2 * n - 1;
+const increment = 0.005;
+int count = 0;
+    
+
+
 
 
 boolean Boost_mode = 0;
@@ -60,7 +74,11 @@ void setup() {
   Wire.begin(); // We need this for the i2c comms for the current sensor
   ina219.init(); // this initiates the current sensor
   Wire.setClock(700000); // set the comms speed for i2c
-  tick = 0;
+
+
+  //for MPP
+  arrCount = 0;
+  lastGenerated = [[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]];
 }
 
  void loop() {
@@ -73,53 +91,88 @@ void setup() {
     CL_mode = digitalRead(3); // input from the OL_CL switch
     Boost_mode = digitalRead(2); // input from the Buck_Boost switch
 
-  //  if (Boost_mode){
-    //  if (CL_mode) { //Closed Loop Boost
-      //    pwm_modulate(1); // This disables the Boost as we are not using this mode
-      //}else{ // Open Loop Boost
-        //  current_limit = 2; // 
-          //oc = iL-current_limit; // Calculate the difference between current measurement and current limit
-          //if ( oc > 0) {
-          //  open_loop=open_loop+0.001; // We are above the current limit so less duty cycle
-          //} else {
-           // open_loop=open_loop-0.001; // We are below the current limit so more duty cycle
-          //}
-          //open_loop=saturation(open_loop,0.99,dutyref); // saturate the duty cycle at the reference or a min of 0.01
-          //pwm_modulate(open_loop); // and send it out
-      //}
-    //}else{      
-      //if (CL_mode) { // Closed Loop Buck
-        //  pwm_modulate(1); // This disables the Buck as we are not using this mode
-      //}else{ // Open Loop Buck
-        //  pwm_modulate(1); // This disables the Buck as we are not using this mode
-      //}
-    //}
+
+//    int arrCount;
+//    float[2][10] lastGenerated; //[ [10 last power values], [10 last delta values]
+//    float pow_last5av;    //10th to 6th most recent power readings average
+//    float pow_recent5av;  //most recent 5 power readings average
+//    float delta_last5av;    //10th to 6th most recent power readings average
+//    float delta_recent5av;  //most recent 5 power readings average
+
+    float[5][2] last5av; 
+    float[5][2] recent5av;
+
+    arrCount += 1;
+    int pos = arrCount%(2 * n)
+
     
-    if(Boost_mode){
-        tick+=100;  // +=1;
-       // rst_tick +=1 
-        // rst_tick % 4000
-       
-      if (tick%100 ==0){
-        current_power_val=-current_mA*vb;
-        
-        
-        if(current_power_val>last_power_val){
-          if (open_loop<0.9){
-            open_loop=open_loop+0.08; 
-          }
-         }else if(current_power_val<last_power_val){
-            if (open_loop > 0.08){
-              open_loop=open_loop-0.08;}   
-            }
-            else{
-              open_loop=open_loop;
-            }
- 
+    lastGenerated[pos][0] = current_mA * vb;
+    lastGenerated[pos][1] = dutyRef;
+    
+    
+    if [pos > n]{       // format the arrays of last measured power and duty
+      for (int i = 0; i <= n-1; i++) {
+        if (i + pos > nend){
+          recent5av[i][0] = lastGenerated[i][0];
+          recent5av[i][1] = lastGenerated[i][1];
+        }else{
+          recent5av[i][0] = lastGenerated[i+n][0];
+          recent5av[i][1] = lastGenerated[i+n][1];
         }
-          last_power_val=-current_mA*vb;
-    
-     }
+        last5av[i][0] = lastGenerated[pos - n+ i][0];
+        last5av[i][1] = lastGenerated[pos - n+ i][1];
+      }
+      
+    }else{  // pos < 5
+      for (int i = 0; i <= n-1; i++) {
+          recent5av[i][0] = lastGenerated[i+pos][0];
+          recent5av[i][1] = lastGenerated[i+pos][1];
+          
+        if (i + pos > 9){
+          last5av[i][0] = lastGenerated[i+ pos - 2*n][0];
+          last5av[i][1] = lastGenerated[i + pos - 2*n][1];
+        }else{
+          recent5av[i][0] = lastGenerated[pos + i+n][0];
+          recent5av[i][1] = lastGenerated[pos + i+n][1];
+        }
+      }
+    } //Two arrays updated
+
+    //now calculate power averages and delta averages
+    for (int i = 0; i <= n-1; i++) {
+      pow_last5av     += last5av[i][0];
+      pow_recent5av   += recent5av[i][0];
+      delta_last5av   += last5av[i][1];
+      delta_recent5av += recent5av[i][1];
+    }
+    pow_last5av     = pow_last5av/5;
+    pow_recent5av   = pow_recent5av/5;
+    delta_last5av   = delta_last5av/5;
+    delta_recent5av = delta_recent5av/5;
+
+    //Now adjust duty - increment constant defined at start
+
+    if( pow_last5av  > pow_recent5av ){
+      if (delta_last5av > delta_recent5av){
+        delta += increment;
+      }else{
+        delta -= increment;
+    }else{
+      if (delta_last5av > delta_recent5av){
+        delta -= increment;
+      }else{
+        delta += increment;
+      }
+    }
+
+    //every 500 counts, reset everything
+    if (count % 500 == 0){
+      open_loop = 0.5;
+      lastGenerated = [[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]];
+        //clear all values
+    }else{
+      open_loop = delta;
+    }
 
     
     
