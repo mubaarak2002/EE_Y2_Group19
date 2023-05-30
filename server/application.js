@@ -45,12 +45,6 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         socket.disconnect();
     }
 
-    socket.on("restart", function() {
-        clientIDs = [];
-        playerNames = [];
-        io.of("/client").disconnectSockets();
-    });
-
 	socket.on("disconnect", function () {
 		console.log(socket.request.connection.remoteAddress + " has disconnected");
         webId = null;
