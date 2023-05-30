@@ -6,9 +6,10 @@
 */
 
 #include <Wire.h>
-#include <INA219_WE.h>
+#include <Adafruit_INA219.h>
 
-INA219_WE ina219; // this is the instantiation of the library for the current sensor
+
+Adafruit_INA219 ina219; // this is the instantiation of the library for the current sensor
 int tick;
 float open_loop, closed_loop; // Duty Cycles
 float va,vb,vref,iL,dutyref,current_mA; // Measurement Variables
@@ -27,14 +28,14 @@ float current_power_val;
 
   //added for MPP
 int arrCount;
-float[2][10] lastGenerated; //[ [10 last power values], [10 last delta values]
-float[5] pow_last5av;    //10th to 6th most recent power readings average
-float[5] pow_recent5av;  //most recent 5 power readings average
-float[5] delta_last5av;    //10th to 6th most recent power readings average
-float[5] delta_recent5av;  //most recent 5 power readings average
-const n = 5;    //scalable if want to log more than the last 10 values
-const nend = 2 * n - 1;
-const increment = 0.005;
+float lastGenerated[2][10]; //[ [10 last power values], [10 last delta values]
+float pow_last5av[5];    //10th to 6th most recent power readings average
+float pow_recent5av[5];  //most recent 5 power readings average
+float delta_last5av[5];    //10th to 6th most recent power readings average
+float delta_recent5av[5];  //most recent 5 power readings average
+const int n = 5;    //scalable if want to log more than the last 10 values
+const int nend = 2 * n - 1;
+const float increment = 0.005;
 int count = 0;
     
 
