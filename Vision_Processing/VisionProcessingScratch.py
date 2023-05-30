@@ -13,12 +13,15 @@ from skimage.transform import  hough_line_peaks as hlp
 #ALL GLOBAL VARIABLES:
 global NUM_PATH_ANGLES
 #this is how many angles we use (the rover will round all paths into 360 degreese divided into however many angles we allow)
-NUM_PATH_ANGLES = 12
+NUM_PATH_ANGLES = 20
 
 global ANGLE_RANGE
 #this is the range of the field of view of the rover (0 to 180)
 ANGLE_RANGE = 180
 
+global DISTANCE_SENSITIVITY
+#the distance sensitivity determines how close lines of the same angle bin must be to eachother to be considered the "same line"
+DISTANCE_SENSITIVITY = 0.1
 
 
 def camera():
@@ -206,10 +209,6 @@ def ShowMask(mask):
     plt.imshow(mask)
     plt.show()
     
-
-#photo_process(photo="./assets/Lamp_Images/Big_Blue.jpeg", range=totalRanges, mode="FullSliders")
-#photo_process(range=totalRanges, mode="TripleMask", blueMask=blueRanges, greenMask=greenRanges, redMask=redRanges)
-
 def getMeanRange(photo="./assets/TestPhoto.jpg", ranges={"lower": np.array([110, 165, 55]), "upper": np.array([160, 255, 175])}):
     
 
@@ -285,12 +284,11 @@ def FindRange(photo="./assets/Course_Images/Straight_Line_1.jpeg"):
     img = cv2.imread(photo, -1)
     FullSliders(Source=img)
 
-
 def plotHoughLines(photo, hspace, theta, dist):
     
     angle_list=[]
     image = cv2.imread(photo, -1)
-    fig, axes = plt.subplots(1, 3, figsize=(15, 6))
+    fig, axes = plt.subplots(1, 3, figsize=(12, 6))
     
     ax = axes.ravel()
     ax[0].imshow(cv2.imread(photo, -1))
@@ -322,19 +320,61 @@ def plotHoughLines(photo, hspace, theta, dist):
     plt.tight_layout()
     plt.show()
     
+def HoughLinesOverlay(photo, data):
+    angle_list=[]
+    image = cv2.imread(photo, -1)
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+    ax = axes.ravel()
+    ax[0].imshow(image)
+    ax[0].set_title("input image")
+    ax[0].set_axis_off()
+
+    ax[1].imshow(cv2.imread(photo, -1))
+    ax[1].set_title("Found Lines")
+
+   
+    for i in range(len(data["radii"])):
+
+        #x = [1, 10]
+        #y = []
+        #set x angle to  
+        #get first point:
+        ang = data["thetas"][i]
+        rad = data["radii"][i]
+        #y.append(-1 * (np.cos(ang)/np.sin(ang)) * (1) + (data["radii"][i]/np.sin(ang)))
+        #y.append(-1 * (np.cos(ang)/np.sin(ang)) * (10) + (data["radii"][i]/np.sin(ang)))
+        #ax[1].axline((x[0], x[1]), (y[0], y[1]), color='C3')
+
+        #attempt two, point 1 is intersection, slope is 90 degreees to that line:
+        x = np.cos(ang) * rad
+        y = np.sin(ang) * rad
+        m =  -1 / ((y) / (x))
+        ax[1].axline((x, y), slope=m, color='C3', label='by slope')
+
+        print("x: " + str(x) + " y: " + str(y))
+
+        
+
     
+    ax[1].imshow(image)
+
+    plt.show()
+
 def hough(photo, mask):
     #detect lines in an image and return them in the form of (r, theta)
     
     #the angles to check, we assume all lines go outwards from the front of the camera
-    angles = np.linspace(0, np.pi, ANGLE_RANGE)
+    angles = np.linspace(0, np.pi, NUM_PATH_ANGLES)
     
-    hspace, theta, dist = hl(mask.sum(-1), angles)
+    hspace, theta, dist = hl(mask.sum(-1), theta=angles)
     
+    #print(str(hspace))
+
     #PlotTwo(cv2.imread(photo, -1), hspace)
-    #plotHoughLines(photo, hspace, theta, dist)
+
     
-    huffSpace, angles, distnaces = hlp(hspace, theta, dist)
+    huffSpace, newAngles, distnaces = hlp(hspace, theta, dist)
     # print(str(np.rad2deg(angles)))
 
     #Now we have all the detected lines, we must now combine like lines into "bins"
@@ -345,19 +385,32 @@ def hough(photo, mask):
     
     bins.append(ANGLE_RANGE)
 
+    foundLines = {"angles": newAngles, "distances": distnaces, "hspace": huffSpace}
+
     newSpaces = {"angles": [], "distances": [], "hspace": []}
 
+    #print(str(theta))
+    #print("hspace length: " + str(len(hspace)) + " dist length: " + str(len(dist)) + " theta length: " + str(len(theta)))
+    print("huffSpace length: " + str(len(huffSpace)) + " distnaces length: " + str(len(distnaces)) + " newAngles length: " + str(len(newAngles)))
 
-    for space, radius, angle in hspace, dist, theta:
-        for approx in bins:
-            if (angle < approx):
+    for i in range(len(huffSpace)):
+        for round in bins:
+            if(np.rad2deg(newAngles[i]) < round):
+                newSpaces["angles"].append(round)
+                newSpaces["distances"].append(newAngles[i])
+                newSpaces["hspace"].append(hspace[i])
+                break
+    
+    #print("angles: " + str(newSpaces["angles"]) + " distances: " + str(newSpaces["distances"]))
+
+
+    #plotHoughLines(photo, hspace, theta, dist)
+    #HoughLinesOverlay(photo, {"thetas": newSpaces["angles"], "radii": newSpaces["distances"]})
+    HoughLinesOverlay(photo, {"thetas": newAngles, "radii": distnaces})
 
 
 
-    print(bins)
 
-    #for distance in distnaces:
-        
 
 def HalfnHalf(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lower": np.array([0, 100, 220]), "upper": np.array([190, 180, 255]), "name": "white"}):
     #this function finds all white points with another white point on the other side.
@@ -378,3 +431,7 @@ ApproxWhiteRange = {"lower": np.array([0, 0, 220]), "upper": np.array([255, 255,
 
 HalfnHalf(ranges=ApproxWhiteRange)
 
+
+
+#photo_process(photo="./assets/Lamp_Images/Big_Blue.jpeg", range=totalRanges, mode="FullSliders")
+#photo_process(range=totalRanges, mode="TripleMask", blueMask=blueRanges, greenMask=greenRanges, redMask=redRanges)
