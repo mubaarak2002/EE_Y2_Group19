@@ -5,7 +5,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Button, RangeSlider
+from matplotlib.widgets import Button, RangeSlider, Slider
 import math
 from skimage.transform import hough_line as hl
 from skimage.transform import  hough_line_peaks as hlp
@@ -13,7 +13,7 @@ from skimage.transform import  hough_line_peaks as hlp
 #ALL GLOBAL VARIABLES:
 global NUM_PATH_ANGLES
 #this is how many angles we use (the rover will round all paths into 360 degreese divided into however many angles we allow)
-NUM_PATH_ANGLES = 20
+NUM_PATH_ANGLES = 50
 
 global ANGLE_RANGE
 #this is the range of the field of view of the rover (0 to 180)
@@ -22,6 +22,10 @@ ANGLE_RANGE = 180
 global DISTANCE_SENSITIVITY
 #the distance sensitivity determines how close lines of the same angle bin must be to eachother to be considered the "same line"
 DISTANCE_SENSITIVITY = 0.1
+
+global DISTANCE_BINS
+#for binning distances (how many distances do you want)
+DISTANCE_BINS = 10
 
 
 def camera():
@@ -233,7 +237,6 @@ def getMeanRange(photo="./assets/TestPhoto.jpg", ranges={"lower": np.array([110,
 
     return theMean
     
-
 def addMarkerMap(photo="./assets/TestPhoto.jpg", ranges=[{"lower": np.array([110, 165, 55]), "upper": np.array([160, 255, 175]), "name": "Red"}]):
     
     plt.imshow(cv2.imread(photo, -1))
@@ -361,11 +364,104 @@ def HoughLinesOverlay(photo, data):
 
     plt.show()
 
-def hough(photo, mask):
+
+def HoughLinesReturn(photo, data):
+    image = cv2.imread(photo, -1)
+    fig, axes = plt.subplots()
+
+
+
+    axes.imshow(cv2.imread(photo, -1))
+    #axes.set_title("Found Lines")
+
+   
+    for i in range(len(data["radii"])):
+
+        #x = [1, 10]
+        #y = []
+        #set x angle to  
+        #get first point:
+        ang = data["thetas"][i]
+        rad = data["radii"][i]
+        #y.append(-1 * (np.cos(ang)/np.sin(ang)) * (1) + (data["radii"][i]/np.sin(ang)))
+        #y.append(-1 * (np.cos(ang)/np.sin(ang)) * (10) + (data["radii"][i]/np.sin(ang)))
+        #ax[1].axline((x[0], x[1]), (y[0], y[1]), color='C3')
+
+        #attempt two, point 1 is intersection, slope is 90 degreees to that line:
+        x = np.cos(ang) * rad
+        y = np.sin(ang) * rad
+        m =  -1 / ((y) / (x))
+        axes.axline((x, y), slope=m, color='C3', label='by slope')
+
+        #print("x: " + str(x) + " y: " + str(y))
+
+        
+
+    
+    # Save the plot as an image without extra whitespace
+    fig.tight_layout()
+
+    # Convert the plot to an image
+    fig.canvas.draw()
+
+    # Get the image from the plot and convert it to a NumPy array
+    image = np.array(fig.canvas.renderer.buffer_rgba())
+
+    # Close the plot to free up resources
+    plt.close(fig)
+
+    return image
+
+def HoughSliders(photo, mask, AngleBins=[10, 360], DistanceBins=[5,100], AngleRange=ANGLE_RANGE):
+
+    image = cv2.imread(photo, -1)
+
+    working = [AngleBins[0], DistanceBins[0]]
+    
+    # Create the figure and axes
+    fig, (Reference, Edited) = plt.subplots(1, 2)
+    plt.subplots_adjust(bottom=0.35)
+    
+    image_plot_Edited = Edited.imshow(HoughLinesReturn(photo, houghFiltered(photo, mask, AngleBins[0], DistanceBins[0], AngleRange)))
+    image_plot_Reference = Reference.imshow(image)
+    
+    slider_Angle = plt.axes([0.2, 0.25, 0.6, 0.03])
+    slider_Distance = plt.axes([0.2, 0.15, 0.6, 0.03])
+    
+    sliderAngle = Slider(slider_Angle, label='Angle', valmin=AngleBins[0], valmax=AngleBins[1], valinit=AngleBins[0])
+    sliderDistance = Slider(slider_Distance, label='Distance', valmin=DistanceBins[0], valmax=DistanceBins[1], valinit=DistanceBins[0])
+    
+       # Function to update the image based on the slider value
+    def update_Angle(value):
+        working[0] = math.floor(value)
+        
+        newImage = HoughLinesReturn(photo, houghFiltered(photo, mask, working[0], working[1], AngleRange))
+        
+        image_plot_Edited.set_data(newImage)
+        fig.canvas.draw_idle()
+        
+       # Function to update the image based on the slider value
+    def update_Distance(value):
+        working[1] = math.floor(value)
+        
+        newImage = HoughLinesReturn(photo, houghFiltered(photo, mask, working[0], working[1], AngleRange))
+        
+        image_plot_Edited.set_data(newImage)
+        fig.canvas.draw_idle()
+        
+    sliderAngle.on_changed(update_Angle)
+    sliderDistance.on_changed(update_Distance)
+    
+    plt.show()
+    
+    
+
+
+def houghFiltered(photo, mask, NP=NUM_PATH_ANGLES, DB=DISTANCE_BINS, AR=ANGLE_RANGE):
     #detect lines in an image and return them in the form of (r, theta)
     
     #the angles to check, we assume all lines go outwards from the front of the camera
-    angles = np.linspace(0, np.pi, NUM_PATH_ANGLES)
+    angles = np.linspace(0, np.pi, NP)
     
     hspace, theta, dist = hl(mask.sum(-1), theta=angles)
     
@@ -380,10 +476,10 @@ def hough(photo, mask):
     #Now we have all the detected lines, we must now combine like lines into "bins"
     bins = []
 
-    for i in range(NUM_PATH_ANGLES):
-        bins.append(math.floor(ANGLE_RANGE*((i)/NUM_PATH_ANGLES)))
+    for i in range(NP):
+        bins.append(math.floor(AR*((i)/NP)))
     
-    bins.append(ANGLE_RANGE)
+    bins.append(AR)
 
     foundLines = {"angles": newAngles, "distances": distnaces, "hspace": huffSpace}
 
@@ -391,24 +487,46 @@ def hough(photo, mask):
 
     #print(str(theta))
     #print("hspace length: " + str(len(hspace)) + " dist length: " + str(len(dist)) + " theta length: " + str(len(theta)))
-    print("huffSpace length: " + str(len(huffSpace)) + " distnaces length: " + str(len(distnaces)) + " newAngles length: " + str(len(newAngles)))
+    #print("huffSpace length: " + str(len(huffSpace)) + " distnaces length: " + str(len(distnaces)) + " newAngles length: " + str(len(newAngles)))
 
     for i in range(len(huffSpace)):
         for round in bins:
             if(np.rad2deg(newAngles[i]) < round):
-                newSpaces["angles"].append(round)
-                newSpaces["distances"].append(newAngles[i])
+                newSpaces["angles"].append(np.deg2rad(round))
+                newSpaces["distances"].append(distnaces[i])
                 newSpaces["hspace"].append(hspace[i])
                 break
     
     #print("angles: " + str(newSpaces["angles"]) + " distances: " + str(newSpaces["distances"]))
 
+    #for i in range(len(newSpaces["angles"])):
+        #print("foundLines: angle = " + str(foundLines["angles"][i]) + " distance = " + str(foundLines["distances"][i]) + " and newSpace: angle = " + str(newSpaces["angles"][i]) + " distance: " + str(newSpaces["distances"][i]))
 
     #plotHoughLines(photo, hspace, theta, dist)
     #HoughLinesOverlay(photo, {"thetas": newSpaces["angles"], "radii": newSpaces["distances"]})
-    HoughLinesOverlay(photo, {"thetas": newAngles, "radii": distnaces})
-
-
+    #HoughLinesOverlay(photo, {"thetas": newAngles, "radii": distnaces})
+    #HoughLinesOverlay(photo, {"thetas": foundLines["angles"], "radii": foundLines["distances"]})  
+    
+    maxDist = np.asarray(newSpaces["distances"]).max()
+    minDist = np.asarray(newSpaces["distances"]).min()
+    
+    dists = []
+    for a in range(DB):
+        dists.append((((maxDist-minDist) * a/DB) + minDist))
+    dists.append(maxDist)
+    
+    print("Max dist: " + str(maxDist) + " Min dist:" + str(minDist))
+    #for distance in dists:
+        #print(distance)
+        
+    for i in range(len(newSpaces["distances"])):
+        for round in dists:
+            if(newSpaces["distances"][i] < round):
+                newSpaces["distances"][i] = round
+                break
+    
+    #return {"photo": photo, "Values": {"thetas": newSpaces["angles"], "radii": newSpaces["distances"]}}
+    return {"thetas": newSpaces["angles"], "radii": newSpaces["distances"]}
 
 
 
@@ -417,11 +535,10 @@ def HalfnHalf(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lowe
     mask = Mask(cv2.imread(photo, -1), ranges["lower"], ranges["upper"])
     
     #debugging stuff
-    hough(photo, mask)
+    HoughSliders(photo, mask)
     
     #to finish, basically we need to find all line semgemnts that are symmetric about a common x axis, this can determine how centred the rover is, and it's path
-
-                
+     
     
 
     
