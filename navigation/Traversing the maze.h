@@ -62,10 +62,10 @@ void collect_info(char maze[5000][5000],int x_cordinate, int y_cordinate, char a
 * Scan the surroundings, if there is an unvisited cell, proceed to it.
 * If all surrounding cells have been visited, then read the upper 4 bits to determine the direction for backtracking.
 **/
-        char is_path(char maze[5000][5000], int x_cordinate, int y_cordinate, char abdN){ // Determine if this direction is connected
-            return !((maze[now.y][now.x]>>absD)&0x01);
+        char is_path(char maze[5000][5000], int x_cordinate, int y_cordinate, char absN){ // Determine if this direction is connected
+            return !((maze[y_cordinate][x_cordinate]>>absN)&0x01);
         }
-        char is_new(char maze[5000][5000], int x_cordinate, int y_cordinate, char abdN){ // Determine if this direction leads to a new cell
+        char is_new(char maze[5000][5000], int x_cordinate, int y_cordinate, char absN){ // Determine if this direction leads to a new cell
             if(absD==0) return (maze[y_cordinate-1][x_cordinate]>>4)==0x0f;
             if(absD==1) return (maze[y_cordinate][x_cordinate+1]>>4)==0x0f;
             if(absD==2) return (maze[y_cordinate+1][x_cordinate]>>4)==0x0f;
