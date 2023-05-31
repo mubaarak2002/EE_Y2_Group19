@@ -429,7 +429,17 @@ def crop(photo, hspace, distances, thetas, topCrop=1/4, bottomCrop=0):
     #doesnt work for some reason
     #return {"h": hspace, "d": distances, "t": thetas}
     #works for some reason
-    #   return [hspace, distances, thetas]
+    
+    output = [hspace, distances, thetas]
+    
+    for index in range(len(hspace)):
+        if(index % 2 == 0):
+            #output[0].append(hspace[index])
+            #output[1].append(thetas[index])
+            #output[2].append(distances[index])    
+            print(1)
+    
+    return output
 
     
     image = cv2.imread(photo, -1)
@@ -455,9 +465,10 @@ def crop(photo, hspace, distances, thetas, topCrop=1/4, bottomCrop=0):
     
     output = [[], [], []]
     
-
     
     allLines = getLines(hspace, distances, thetas)
+    
+    
     #returned value:{"slope": m, "point": [x,y]}
     used = []
     for i in range(len(distances)):
@@ -467,18 +478,26 @@ def crop(photo, hspace, distances, thetas, topCrop=1/4, bottomCrop=0):
         leftIntercept = slope * -1 * point[0] + point[1]
         rightIntercept = slope * (right - point[0]) + point[1]
         
+
+        
         #print("rightIntercept = " + str(rightIntercept) + ". left Intercept = " + str(leftIntercept) + "and the cutoff is: " + str((topCrop) * bottom))
     
         #edited: do the opposite and add to a new one
         # if "the mean value of both intersection points is above the cutoff threshold, remove that line"
         #if (0.5 * (rightIntercept + leftIntercept) > (1-topCrop) * bottom):
-        if (rightIntercept < (topCrop) * bottom and leftIntercept < (topCrop) * bottom ):
-        #if (True):
+        
+        
+        
+        #if (rightIntercept < (topCrop) * bottom and leftIntercept < (topCrop) * bottom ):
+        if (True):
+            
             #print("adding")
             used.append(i)
-            output[0].append(hspace[i])
-            output[1].append(thetas[i])
-            output[2].append(distances[i])
+            output[0].append(npArrayToNormal(hspace)[i])
+            output[1].append(npArrayToNormal(thetas)[i])
+            output[2].append(npArrayToNormal(distances)[i])
+            
+
             
     #print("After filtering there are: " + str(len(output[0])) + " lines")
     #print("\n \n \n \n")
@@ -488,8 +507,8 @@ def crop(photo, hspace, distances, thetas, topCrop=1/4, bottomCrop=0):
     #print(used)
     
     
-    print(( type(hspace[used[0]]), type(thetas[used[0]]), type(distances[used[0]]) ))
-    print(( type(output[0][0]), type(output[1][0]), type(output[2][0]) ))
+    #print(( type(hspace[used[0]]), type(thetas[used[0]]), type(distances[used[0]]) ))
+    #print(( type(output[0][0]), type(output[1][0]), type(output[2][0]) ))
     
     
     for i in range(len(output[0])):
@@ -795,7 +814,7 @@ def HalfnHalf(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lowe
 
     
     plotHoughLines(photo, None, None, None, mode="given", data=crop(photo, who["h"], who["q"], who["d"]))
-    plotHoughLines(photo, None, None, None, mode="given", data=[who["h"], who["q"], who["d"]])
+    #plotHoughLines(photo, None, None, None, mode="given", data=[who["h"], who["q"], who["d"]])
     
     
     
