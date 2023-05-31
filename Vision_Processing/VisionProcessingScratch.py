@@ -359,8 +359,7 @@ def plotHoughLines(photo, hspace, theta, dist, mode="default", data=[]):
         
         plt.tight_layout()
         plt.show()
-    
-    
+        
     
     
 def HoughLinesOverlay(photo, data):
@@ -425,99 +424,31 @@ def Hough(photo, mask, ANG_MIN=0, ANG_MAX=np.pi, NAB=NUM_PATH_ANGLES, mode="show
 
 def crop(photo, hspace, distances, thetas, topCrop=1/4, bottomCrop=0):
     #crops out all lines that start and finish inside the cropped out region
-    
-    #doesnt work for some reason
-    #return {"h": hspace, "d": distances, "t": thetas}
-    #works for some reason
-    
-    output = [hspace, distances, thetas]
-    
-    for index in range(len(hspace)):
-        if(index % 2 == 0):
-            #output[0].append(hspace[index])
-            #output[1].append(thetas[index])
-            #output[2].append(distances[index])    
-            print(1)
-    
-    return output
-
-    
+       
     image = cv2.imread(photo, -1)
-    
-    #print("Currently, there are: " + str(len(thetas)) + " lines")
-    
-    #print("\n \n \n \n")
-    #print([hspace])
-    #print("\n")
-    #print([thetas])
-    #print("\n")
-    #print([distances])
-    
+
     left = 0
     bottom = image.shape[0]
     top = 0
     right = image.shape[1]
     
-    #print("bottom: " + str(bottom) + " right: " + str(right))
-    
-    #topThresh = image
-    #botThresh = image
-    
-    output = [[], [], []]
-    
-    
     allLines = getLines(hspace, distances, thetas)
     
     
-    #returned value:{"slope": m, "point": [x,y]}
-    used = []
+    toRemove = []
     for i in range(len(distances)):
         line = allLines[i]
         slope = line["slope"]
         point = line["point"]
         leftIntercept = slope * -1 * point[0] + point[1]
         rightIntercept = slope * (right - point[0]) + point[1]
-        
+    
+        if (rightIntercept < (topCrop) * bottom and leftIntercept < (topCrop) * bottom ):
+            toRemove.append(i)
+    
+    return [np.delete(hspace, toRemove), np.delete(distances, toRemove), np.delete(thetas, toRemove)]
 
-        
-        #print("rightIntercept = " + str(rightIntercept) + ". left Intercept = " + str(leftIntercept) + "and the cutoff is: " + str((topCrop) * bottom))
-    
-        #edited: do the opposite and add to a new one
-        # if "the mean value of both intersection points is above the cutoff threshold, remove that line"
-        #if (0.5 * (rightIntercept + leftIntercept) > (1-topCrop) * bottom):
-        
-        
-        
-        #if (rightIntercept < (topCrop) * bottom and leftIntercept < (topCrop) * bottom ):
-        if (True):
-            
-            #print("adding")
-            used.append(i)
-            output[0].append(npArrayToNormal(hspace)[i])
-            output[1].append(npArrayToNormal(thetas)[i])
-            output[2].append(npArrayToNormal(distances)[i])
-            
 
-            
-    #print("After filtering there are: " + str(len(output[0])) + " lines")
-    #print("\n \n \n \n")
-    #print(output)
-    #return output
-    
-    #print(used)
-    
-    
-    #print(( type(hspace[used[0]]), type(thetas[used[0]]), type(distances[used[0]]) ))
-    #print(( type(output[0][0]), type(output[1][0]), type(output[2][0]) ))
-    
-    
-    for i in range(len(output[0])):
-        if type((hspace[used[i]], thetas[used[i]], distances[used[i]])) != type((output[0][i], output[1][i], output[2][i])):
-            print("error: " + str((hspace[used[i]], thetas[used[i]], distances[used[i]])) + " " + str((output[0][i], output[1][i], output[2][i])))
-    
-    
-    return [np.array(output[0]), np.array(output[1]), np.array(output[2])]
-    
     
 
 #for debugging (I think Im loosing my mind)
@@ -707,98 +638,27 @@ def chopchop(lines, mode="return", image="./assets/Course_Images/Straight_Line_1
     elif mode == "return":
         return intersections
     
-    
 def houghFiltered(photo, mask, NP=NUM_PATH_ANGLES, DB=DISTANCE_BINS, AR=ANGLE_RANGE, TH=[2,2]):
     #detect lines in an image and return them in the form of (r, theta)
     
-    #the angles to check, we assume all lines go outwards from the front of the camera
-    angles = np.linspace(0, np.pi, NP)
-    
-    hspace, theta, dist = hl(mask.sum(-1), theta=angles)
-    
-    #print(str(hspace))
 
-    #PlotTwo(cv2.imread(photo, -1), hspace)
 
-    
-    huffSpace, newAngles, distnaces = hlp(hspace, theta, dist)
-    # print(str(np.rad2deg(angles)))
-
-    #Now we have all the detected lines, we must now combine like lines into "bins"
-    bins = []
-
-    for i in range(NP):
-        bins.append(math.floor(AR*((i)/NP)))
-    
-    bins.append(AR)
-
-    foundLines = {"angles": newAngles, "distances": distnaces, "hspace": huffSpace}
-
-    newSpaces = {"angles": [], "distances": [], "hspace": []}
-
-    #print(str(theta))
-    #print("hspace length: " + str(len(hspace)) + " dist length: " + str(len(dist)) + " theta length: " + str(len(theta)))
-    #print("huffSpace length: " + str(len(huffSpace)) + " distnaces length: " + str(len(distnaces)) + " newAngles length: " + str(len(newAngles)))
-
-    for i in range(len(huffSpace)):
-        for round in bins:
-            if(np.rad2deg(newAngles[i]) < round):
-                newSpaces["angles"].append(np.deg2rad(round))
-                newSpaces["distances"].append(distnaces[i])
-                newSpaces["hspace"].append(hspace[i])
-                break
-    
-    #print("angles: " + str(newSpaces["angles"]) + " distances: " + str(newSpaces["distances"]))
-
-    #for i in range(len(newSpaces["angles"])):
-        #print("foundLines: angle = " + str(foundLines["angles"][i]) + " distance = " + str(foundLines["distances"][i]) + " and newSpace: angle = " + str(newSpaces["angles"][i]) + " distance: " + str(newSpaces["distances"][i]))
-
-    #plotHoughLines(photo, hspace, theta, dist)
-    #HoughLinesOverlay(photo, {"thetas": newSpaces["angles"], "radii": newSpaces["distances"]})
-    #HoughLinesOverlay(photo, {"thetas": newAngles, "radii": distnaces})
-    #HoughLinesOverlay(photo, {"thetas": foundLines["angles"], "radii": foundLines["distances"]})  
-    
-    maxDist = np.asarray(newSpaces["distances"]).max()
-    minDist = np.asarray(newSpaces["distances"]).min()
-    
-    dists = []
-    for a in range(DB):
-        dists.append((((maxDist-minDist) * a/DB) + minDist))
-    dists.append(maxDist)
-    
-        
-    for i in range(len(newSpaces["distances"])):
-        for round in dists:
-            if(newSpaces["distances"][i] < round):
-                newSpaces["distances"][i] = round
-                break
-    
-    
-    #Now removing all lines that are "too similar" to each other
-    #TH=threshold, which is "within how many angle bins (TH[0]) and how many distance bins TH[1] can you be in for the lines to be the same"
-    
-    
-    #return {"photo": photo, "Values": {"thetas": newSpaces["angles"], "radii": newSpaces["distances"]}}
-    return {"thetas": newSpaces["angles"], "radii": newSpaces["distances"]}
-
+    print(1)
 
 def HalfnHalf(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lower": np.array([0, 100, 220]), "upper": np.array([190, 180, 255]), "name": "white"}):
+    
+    
+    
     #this function finds all white points with another white point on the other side.
     mask = Mask(cv2.imread(photo, -1), ranges["lower"], ranges["upper"])
     
     #debugging stuff
     #HoughSliders(photo, mask)
-    who = Hough(photo, mask, mode="return")
-    
 
+
+    #def Hough(photo, mask, ANG_MIN=0, ANG_MAX=np.pi, NAB=NUM_PATH_ANGLES, mode="show", filter=True):
+    who = Hough(photo, mask, mode="return", NAB=360)
     
-    
-    #who output = {"hspace": hspace, "theta": theta, "dist": dist, "h": h, "q": q, "d": d}
-    #Lines Output = 
-    #lines = getLines(who["h"], who["q"], who["d"])
-    
-    #crop input = image, hspace, distances, thetas, topCrop=1/4, bottomCrop=0
-    #chop output = {"hspaces": hspace, "distances": distances, "thetas": thetas}
     
     lines = crop(photo, who["h"], who["q"], who["d"]) # Will return: return {"h": hspace, "d": distances, "t": thetas}
     
