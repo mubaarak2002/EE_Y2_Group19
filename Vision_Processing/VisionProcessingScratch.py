@@ -287,41 +287,81 @@ def FindRange(photo="./assets/Course_Images/Straight_Line_1.jpeg"):
     img = cv2.imread(photo, -1)
     FullSliders(Source=img)
 
-def plotHoughLines(photo, hspace, theta, dist):
+def plotHoughLines(photo, hspace, theta, dist, mode="default", data=[]):
+    #data = [hspace, angle, dist] (array of arrays)
     
-    angle_list=[]
-    image = cv2.imread(photo, -1)
-    fig, axes = plt.subplots(1, 3, figsize=(12, 6))
+    if mode == "defualt":
+        angle_list=[]
+        image = cv2.imread(photo, -1)
+        fig, axes = plt.subplots(1, 3, figsize=(12, 6))
+        
+        ax = axes.ravel()
+        ax[0].imshow(cv2.imread(photo, -1))
+        ax[0].set_title("input image")
+        ax[0].set_axis_off()
+        
+        ax[1].imshow(np.log(1 + hspace),
+                extent=[np.rad2deg(theta[-1]), np.rad2deg(theta[0]), dist[-1], dist[0]],
+                cmap='gray', aspect=1/1.5)
+        ax[1].set_title('Hough transform')
+        ax[1].set_xlabel('Angles (degrees)')
+        ax[1].set_ylabel('Distance (pixels)')
+        #ax[1].set_xlim([0,1])
+        ax[1].axis('image')
+
+        ax[2].imshow(image, cmap='gray')
+
+        origin = np.array((0, image.shape[1]))
+
+        for _, angle, dist in zip(*hlp(hspace, theta, dist)):
+            angle_list.append(angle) #Not for plotting but later calculation of angles
+            y0, y1 = (dist - origin * np.cos(angle)) / np.sin(angle)
+            ax[2].plot(origin, (y0, y1), '-r')
+        ax[2].set_xlim(origin)
+        ax[2].set_ylim((image.shape[0], 0))
+        ax[2].set_axis_off()
+        ax[2].set_title('Detected lines')
+
+
+
+        plt.tight_layout()
+        plt.show()
     
-    ax = axes.ravel()
-    ax[0].imshow(cv2.imread(photo, -1))
-    ax[0].set_title("input image")
-    ax[0].set_axis_off()
+    elif mode == "given":
+        angle_list=[]
+        image = cv2.imread(photo, -1)
+        fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+        
+        ax = axes.ravel()
+        ax[0].imshow(cv2.imread(photo, -1))
+        ax[0].set_title("input image")
+        ax[0].set_axis_off()
     
-    ax[1].imshow(np.log(1 + hspace),
-             extent=[np.rad2deg(theta[-1]), np.rad2deg(theta[0]), dist[-1], dist[0]],
-             cmap='gray', aspect=1/1.5)
-    ax[1].set_title('Hough transform')
-    ax[1].set_xlabel('Angles (degrees)')
-    ax[1].set_ylabel('Distance (pixels)')
-    #ax[1].set_xlim([0,1])
-    ax[1].axis('image')
+        ax[1].imshow(image, cmap='gray')
 
-    ax[2].imshow(image, cmap='gray')
 
-    origin = np.array((0, image.shape[1]))
+        origin = np.array((0, image.shape[1]))
 
-    for _, angle, dist in zip(*hlp(hspace, theta, dist)):
-        angle_list.append(angle) #Not for plotting but later calculation of angles
-        y0, y1 = (dist - origin * np.cos(angle)) / np.sin(angle)
-        ax[2].plot(origin, (y0, y1), '-r')
-    ax[2].set_xlim(origin)
-    ax[2].set_ylim((image.shape[0], 0))
-    ax[2].set_axis_off()
-    ax[2].set_title('Detected lines')
+        for index in range(len(data[0])):
+            h = data[0][index]
+            angle = data[1][index]
+            dist = data[2][index]
+            angle_list.append(angle) #Not for plotting but later calculation of angles
+            y0, y1 = (dist - origin * np.cos(angle)) / np.sin(angle)
+            ax[1].plot(origin, (y0, y1), '-r')
+        ax[1].set_xlim(origin)
+        ax[1].set_ylim((image.shape[0], 0))
+        ax[1].set_axis_off()
+        ax[1].set_title('Detected lines')
 
-    plt.tight_layout()
-    plt.show()
+        #'print(image.shape[1])
+
+        
+        plt.tight_layout()
+        plt.show()
+    
+    
+    
     
 def HoughLinesOverlay(photo, data):
     angle_list=[]
@@ -364,6 +404,102 @@ def HoughLinesOverlay(photo, data):
 
     plt.show()
 
+
+def Hough(photo, mask, ANG_MIN=0, ANG_MAX=np.pi, NAB=NUM_PATH_ANGLES, mode="show", filter=True):
+
+    
+    tested_angles = np.linspace(ANG_MIN, ANG_MAX, NAB)
+    hspace, theta, dist = hl(mask.sum(-1), tested_angles)
+    
+    h, q, d = hlp(hspace, theta, dist)
+    
+    
+    if mode == "show":
+        image = cv2.imread(photo, -1)
+        #plt.imshow(image)
+        #plt.figure(figsize=(10,10))
+        #plt.imshow(hspace)
+        plotHoughLines(photo, hspace, theta, dist, mode="given", data=[h,q,d])
+    elif mode == "return":
+        return {"hspace": hspace, "theta": theta, "dist": dist, "h": h, "q": q, "d": d}
+
+def crop(photo, hspace, distances, thetas, topCrop=1/4, bottomCrop=0):
+    #crops out all lines that start and finish inside the cropped out region
+    
+    #doesnt work for some reason
+    #return {"h": hspace, "d": distances, "t": thetas}
+    #works for some reason
+    #return [hspace, distances, thetas]
+
+    
+    image = cv2.imread(photo, -1)
+    
+    print("Currently, there are: " + str(len(thetas)) + " lines")
+    
+    print("\n \n \n \n")
+    print([hspace])
+    print("\n")
+    print([thetas])
+    print("\n")
+    print([distances])
+    
+    left = 0
+    bottom = image.shape[0]
+    top = 0
+    right = image.shape[1]
+    
+    #print("bottom: " + str(bottom) + " right: " + str(right))
+    
+    #topThresh = image
+    #botThresh = image
+    
+    output = [[], [], []]
+    
+
+    
+    allLines = getLines(hspace, distances, thetas)
+    #returned value:{"slope": m, "point": [x,y]}
+    
+    for i in range(len(distances)):
+        line = allLines[i]
+        slope = line["slope"]
+        point = line["point"]
+        leftIntercept = slope * -1 * point[0] + point[1]
+        rightIntercept = slope * (right - point[0]) + point[1]
+        
+        #print("rightIntercept = " + str(rightIntercept) + ". left Intercept = " + str(leftIntercept) + "and the cutoff is: " + str((topCrop) * bottom))
+    
+        #edited: do the opposite and add to a new one
+        # if "the mean value of both intersection points is above the cutoff threshold, remove that line"
+        #if (0.5 * (rightIntercept + leftIntercept) > (1-topCrop) * bottom):
+        if (rightIntercept < (topCrop) * bottom and leftIntercept < (topCrop) * bottom ):
+        #if (True):
+            #print("adding")
+            output[0].append(hspace[i])
+            output[1].append(thetas[i])
+            output[2].append(distances[i])
+            
+    print("After filtering there are: " + str(len(output[0])) + " lines")
+    print("\n \n \n \n")
+    print(output)
+    return output
+    return [np.array(output[0]), np.array(output[1]), np.array(output[2])]
+    
+    toReturn = {"hspaces": np.array(output["hspaces"]), "distances": np.array(output["distances"]), "thetas": np.array(output["thetas"])}
+    
+    #toReturn = {"hspaces": hspace, "distances": distances, "thetas": thetas}
+    
+    print(toReturn)
+    
+    print("After filtering there are: " + str(toReturn["distances"].size) + " lines")
+            
+    return toReturn
+    
+    
+
+#for debugging (I think Im loosing my mind)
+def doNothing(photo, h, q, d):
+    return {"h": h, "t": q, "d": d}
 
 def HoughLinesReturn(photo, data):
     image = cv2.imread(photo, -1)
@@ -412,7 +548,7 @@ def HoughLinesReturn(photo, data):
 
     return image
 
-def HoughSliders(photo, mask, AngleBins=[10, 360], DistanceBins=[5,100], AngleRange=ANGLE_RANGE):
+def HoughBinSliders(photo, mask, AngleBins=[10, 360], DistanceBins=[5,100], AngleRange=ANGLE_RANGE):
 
     image = cv2.imread(photo, -1)
 
@@ -455,9 +591,96 @@ def HoughSliders(photo, mask, AngleBins=[10, 360], DistanceBins=[5,100], AngleRa
     plt.show()
     
     
+def HoughSliders(photo, mask, ANG_MIN=0, ANG_MAX=np.pi, NAB=NUM_PATH_ANGLES):
+    image = cv2.imread(photo, -1)
+    # Create the figure and axes
+    fig, (Reference, Edited) = plt.subplots(1, 2)
+    plt.subplots_adjust(bottom=0.35)
+    
+    image_plot_Reference = Reference.imshow(image)
+    image_plot_Edited = Edited.imshow()
+    
+    tested_angles = np.linspace(ANG_MIN, ANG_MAX, NAB)
+    hspace, theta, dist = hl(mask.sum(-1), tested_angles)
+    
+    #of the form [angle min, angle max, num Angles]
+    working = []
+    
+    slider_Angle_min = plt.axes([0.2, 0.25, 0.6, 0.03])
+    slider_Angle_max = plt.axes([0.2, 0.15, 0.6, 0.03])
+    slider_Angle_inc = plt.axes([0.2, 0.15, 0.6, 0.03])
+    
+    #To Finish, basically want sliders where we can click and drag to change the minimum detectable angle, the maximum detectable angle, and the number of angle bins
+    
+    
+def getLines(hspace, theta, dist):
+    #This function takes in a hughspace triple, and returns an array with the slope, and a point of each line.
+    #make sure the input to this function is the return of a hlp() function, not a hl() function
+    out = []
+    
+    for i in range(len(dist)):
+        
+        ang = theta[i]
+        rad = dist[i]
+        
+        #attempt two, point 1 is intersection, slope is 90 degreees to that line:
+        x = np.cos(ang) * rad
+        y = np.sin(ang) * rad
+        m =  -1 / ((y) / (x))
+        out.append({"slope": m, "point": [x,y]})
+    
+    return out
+    
+def chopchop(lines, mode="return", image="./assets/Course_Images/Straight_Line_1.jpeg"):
+    #This function takes in an array of elements of the form {"slope": m, "point": [x,y]} which represent lines, then 
+    #will return the co-ordinates of all intersection points of each line. We know that any two lines will intersect
+    #unless they have the same slope, so we can set these points as 'x' and 'y', and then cna rearrange both equasions
+    #to fit the function
+    
+    picture = cv2.imread(image) 
+    intersections = []
+    
+    #doing a "diagonal check", so not checking along leading diagonal, or "right half" of the table
+    for jindex in range(len(lines)):
+        for index in range(jindex):
+            
+            line = lines[jindex]
+            
+            #we must now check if line "line" intersects the line lines[i]
+            
+            if(lines[index]["slope"] != line["slope"]):
+                x = (lines[index]["point"][1] - lines[index]["slope"] * lines[index]["point"][0] - line["point"][1] + line["slope"] * line["point"][0]) / (line["slope"] - lines[index]["slope"])
+                y = line["slope"] * (x - line["point"][0]) + line["point"][1]
+                if(y > picture.shape[0] * 1/4):
+                    intersections.append((x,y))
+                
+    #print(intersections)
+    if (mode == "plot"):
 
-
-def houghFiltered(photo, mask, NP=NUM_PATH_ANGLES, DB=DISTANCE_BINS, AR=ANGLE_RANGE):
+        # Create a figure and axes
+        fig, ax = plt.subplots()
+        
+        # Display the image
+        ax.imshow(picture)
+        
+        # Extract the x and y coordinates from the list
+        x_coords = [coord[0] for coord in intersections]
+        y_coords = [coord[1] for coord in intersections]
+        
+        # Plot the coordinates on the image
+        ax.plot(x_coords, y_coords, 'ro')  # 'ro' stands for red circles
+        
+        # Set axis limits to match the image dimensions
+        ax.set_xlim(0, picture.shape[1])
+        ax.set_ylim(picture.shape[0], 0)
+        
+        # Show the plot
+        plt.show()
+    elif mode == "return":
+        return intersections
+    
+    
+def houghFiltered(photo, mask, NP=NUM_PATH_ANGLES, DB=DISTANCE_BINS, AR=ANGLE_RANGE, TH=[2,2]):
     #detect lines in an image and return them in the form of (r, theta)
     
     #the angles to check, we assume all lines go outwards from the front of the camera
@@ -515,9 +738,6 @@ def houghFiltered(photo, mask, NP=NUM_PATH_ANGLES, DB=DISTANCE_BINS, AR=ANGLE_RA
         dists.append((((maxDist-minDist) * a/DB) + minDist))
     dists.append(maxDist)
     
-    print("Max dist: " + str(maxDist) + " Min dist:" + str(minDist))
-    #for distance in dists:
-        #print(distance)
         
     for i in range(len(newSpaces["distances"])):
         for round in dists:
@@ -525,9 +745,13 @@ def houghFiltered(photo, mask, NP=NUM_PATH_ANGLES, DB=DISTANCE_BINS, AR=ANGLE_RA
                 newSpaces["distances"][i] = round
                 break
     
+    
+    #Now removing all lines that are "too similar" to each other
+    #TH=threshold, which is "within how many angle bins (TH[0]) and how many distance bins TH[1] can you be in for the lines to be the same"
+    
+    
     #return {"photo": photo, "Values": {"thetas": newSpaces["angles"], "radii": newSpaces["distances"]}}
     return {"thetas": newSpaces["angles"], "radii": newSpaces["distances"]}
-
 
 
 def HalfnHalf(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lower": np.array([0, 100, 220]), "upper": np.array([190, 180, 255]), "name": "white"}):
@@ -535,7 +759,41 @@ def HalfnHalf(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lowe
     mask = Mask(cv2.imread(photo, -1), ranges["lower"], ranges["upper"])
     
     #debugging stuff
-    HoughSliders(photo, mask)
+    #HoughSliders(photo, mask)
+    who = Hough(photo, mask, mode="return")
+    
+
+    
+    
+    #who output = {"hspace": hspace, "theta": theta, "dist": dist, "h": h, "q": q, "d": d}
+    #Lines Output = 
+    #lines = getLines(who["h"], who["q"], who["d"])
+    
+    #crop input = image, hspace, distances, thetas, topCrop=1/4, bottomCrop=0
+    #chop output = {"hspaces": hspace, "distances": distances, "thetas": thetas}
+    
+    lines = crop(photo, who["h"], who["q"], who["d"]) # Will return: return {"h": hspace, "d": distances, "t": thetas}
+    
+    
+
+    
+    #lines = doNothing(photo, who["h"], who["q"], who["d"])
+    
+
+    
+    #Hough(photo, mask)
+    
+    #data = [hspace, angle, dist] (array of arrays)
+    
+    whoReturn = Hough(photo, mask, mode="return")
+    plotHoughLines(photo, None, None, None, mode="given", data=[whoReturn["h"], whoReturn["q"], whoReturn["d"]])
+    
+    
+    
+    
+    plotHoughLines(photo, None, None, None, mode="given", data=lines)
+    
+    #chopchop(lines)
     
     #to finish, basically we need to find all line semgemnts that are symmetric about a common x axis, this can determine how centred the rover is, and it's path
      
@@ -548,7 +806,7 @@ ApproxWhiteRange = {"lower": np.array([0, 0, 220]), "upper": np.array([255, 255,
 
 HalfnHalf(ranges=ApproxWhiteRange)
 
-
-
+#num of angle bins and distance bins required (ish)
+[300, 80]
 #photo_process(photo="./assets/Lamp_Images/Big_Blue.jpeg", range=totalRanges, mode="FullSliders")
 #photo_process(range=totalRanges, mode="TripleMask", blueMask=blueRanges, greenMask=greenRanges, redMask=redRanges)
