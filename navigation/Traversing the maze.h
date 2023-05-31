@@ -36,9 +36,9 @@ char abs_to_rel(char absN, char absT){
  * Record maze information for current coordinates
 */
 char read_f(){
-    //TODO:Retrieving coordinate information in relative directions
+    //TODO:Retrieving coordinate information in relative directions from previous step
 }
-void collect_info(char maze[5000][5000],int x_cordinate, int y_cordinate, char abdN){
+void collect_info(char maze[5000][5000],int x_cordinate, int y_cordinate, char absN){
 
     //record the information of the maze
     if(maze[x][y]==0){//which means that the cordinate now has not been written before, so writting it in
@@ -50,7 +50,8 @@ void collect_info(char maze[5000][5000],int x_cordinate, int y_cordinate, char a
             //should be like:k should be the informatio from the light and transform it to relative direction;
             //the value of wall should be the value after a bitwise OR operation between val_wall and (k<<i), and assign the result back to val_wall.
         }
-        //TODO:write the information of wall and future direction to maze. Don't know how to write now.
+        maze[y_cordinate][x_cordinate] &= wall;  // write the information of wall in high 4-bits
+        maze[y_cordinate][x_cordinate] &= ((absN<<4)|0x0f);  // write the future direction in low 4-bits
     }
 }
 /**
