@@ -88,7 +88,7 @@ void collect_info(char maze[5000][5000],int x_cordinate, int y_cordinate, char a
         if(pre>=2) back = pre-2;
         return back;
         }
-/** Key Function Set (3): Execution
+/** Key Function Set: Execution
 * Based on the information obtained from the previous step, execute the actions.
 **/
     void go_to_next(int *x_cordinate, int *y_cordinate, char *absN, char absT){
