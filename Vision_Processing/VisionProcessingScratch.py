@@ -429,7 +429,7 @@ def crop(photo, hspace, distances, thetas, topCrop=1/4, bottomCrop=0):
     #doesnt work for some reason
     #return {"h": hspace, "d": distances, "t": thetas}
     #works for some reason
-    #return [hspace, distances, thetas]
+    #   return [hspace, distances, thetas]
 
     
     image = cv2.imread(photo, -1)
@@ -486,8 +486,14 @@ def crop(photo, hspace, distances, thetas, topCrop=1/4, bottomCrop=0):
     #return output
     
     #print(used)
+    
+    
+    print(( type(hspace[used[0]]), type(thetas[used[0]]), type(distances[used[0]]) ))
+    print(( type(output[0][0]), type(output[1][0]), type(output[2][0]) ))
+    
+    
     for i in range(len(output[0])):
-        if (hspace[used[i]], thetas[used[i]], distances[used[i]]) != (output[0][i], output[1][i], output[2][i]):
+        if type((hspace[used[i]], thetas[used[i]], distances[used[i]])) != type((output[0][i], output[1][i], output[2][i])):
             print("error: " + str((hspace[used[i]], thetas[used[i]], distances[used[i]])) + " " + str((output[0][i], output[1][i], output[2][i])))
     
     
