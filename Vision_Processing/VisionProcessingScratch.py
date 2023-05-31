@@ -434,14 +434,14 @@ def crop(photo, hspace, distances, thetas, topCrop=1/4, bottomCrop=0):
     
     image = cv2.imread(photo, -1)
     
-    print("Currently, there are: " + str(len(thetas)) + " lines")
+    #print("Currently, there are: " + str(len(thetas)) + " lines")
     
-    print("\n \n \n \n")
-    print([hspace])
-    print("\n")
-    print([thetas])
-    print("\n")
-    print([distances])
+    #print("\n \n \n \n")
+    #print([hspace])
+    #print("\n")
+    #print([thetas])
+    #print("\n")
+    #print([distances])
     
     left = 0
     bottom = image.shape[0]
@@ -459,7 +459,7 @@ def crop(photo, hspace, distances, thetas, topCrop=1/4, bottomCrop=0):
     
     allLines = getLines(hspace, distances, thetas)
     #returned value:{"slope": m, "point": [x,y]}
-    
+    used = []
     for i in range(len(distances)):
         line = allLines[i]
         slope = line["slope"]
@@ -475,25 +475,23 @@ def crop(photo, hspace, distances, thetas, topCrop=1/4, bottomCrop=0):
         if (rightIntercept < (topCrop) * bottom and leftIntercept < (topCrop) * bottom ):
         #if (True):
             #print("adding")
+            used.append(i)
             output[0].append(hspace[i])
             output[1].append(thetas[i])
             output[2].append(distances[i])
             
-    print("After filtering there are: " + str(len(output[0])) + " lines")
-    print("\n \n \n \n")
-    print(output)
-    return output
+    #print("After filtering there are: " + str(len(output[0])) + " lines")
+    #print("\n \n \n \n")
+    #print(output)
+    #return output
+    
+    #print(used)
+    for i in range(len(output[0])):
+        if (hspace[used[i]], thetas[used[i]], distances[used[i]]) != (output[0][i], output[1][i], output[2][i]):
+            print("error: " + str((hspace[used[i]], thetas[used[i]], distances[used[i]])) + " " + str((output[0][i], output[1][i], output[2][i])))
+    
+    
     return [np.array(output[0]), np.array(output[1]), np.array(output[2])]
-    
-    toReturn = {"hspaces": np.array(output["hspaces"]), "distances": np.array(output["distances"]), "thetas": np.array(output["thetas"])}
-    
-    #toReturn = {"hspaces": hspace, "distances": distances, "thetas": thetas}
-    
-    print(toReturn)
-    
-    print("After filtering there are: " + str(toReturn["distances"].size) + " lines")
-            
-    return toReturn
     
     
 
@@ -590,7 +588,12 @@ def HoughBinSliders(photo, mask, AngleBins=[10, 360], DistanceBins=[5,100], Angl
     
     plt.show()
     
+
+
     
+
+
+ 
 def HoughSliders(photo, mask, ANG_MIN=0, ANG_MAX=np.pi, NAB=NUM_PATH_ANGLES):
     image = cv2.imread(photo, -1)
     # Create the figure and axes
@@ -783,15 +786,15 @@ def HalfnHalf(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lowe
     
     #Hough(photo, mask)
     
-    #data = [hspace, angle, dist] (array of arrays)
+
     
-    whoReturn = Hough(photo, mask, mode="return")
-    plotHoughLines(photo, None, None, None, mode="given", data=[whoReturn["h"], whoReturn["q"], whoReturn["d"]])
-    
-    
+    plotHoughLines(photo, None, None, None, mode="given", data=crop(photo, who["h"], who["q"], who["d"]))
+    plotHoughLines(photo, None, None, None, mode="given", data=[who["h"], who["q"], who["d"]])
     
     
-    plotHoughLines(photo, None, None, None, mode="given", data=lines)
+    
+    
+    
     
     #chopchop(lines)
     
