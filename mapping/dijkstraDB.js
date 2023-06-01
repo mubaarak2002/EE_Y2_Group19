@@ -78,6 +78,14 @@ function dijkstra(adjacency, start, end) {
     return "incomplete matrix";
 }
 
+function get_distance(matrix, path) {
+    let distance = 0;
+    for (let i = 1; i < path.length; i++) {
+        distance += matrix[path[i]][path[i - 1]];
+    }
+
+    return distance;
+}
 
 var matrix = [
     [0, 10, 3, 0, 0],
