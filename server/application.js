@@ -45,6 +45,11 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         socket.disconnect();
     }
 
+  socket.on("test", function (data) {
+    socket.emit("asdfgh")
+    console.log("test");
+  });
+
 	socket.on("disconnect", function () {
 		console.log(socket.request.connection.remoteAddress + " has disconnected");
         webId = null;
