@@ -671,12 +671,12 @@ def HalfnHalf(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lowe
     
     #Hough(photo, mask)
     
-
+    FullSliders(cv2.imread("./assets/LAMP_Images/Big_Red.jpeg", -1))
     
     plotHoughLines(photo, None, None, None, mode="given", data=crop(photo, who["h"], who["q"], who["d"]))
     #plotHoughLines(photo, None, None, None, mode="given", data=[who["h"], who["q"], who["d"]])
     
-    
+    SegmentDetector(photo)
     
     
     
@@ -686,6 +686,17 @@ def HalfnHalf(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lowe
     #to finish, basically we need to find all line semgemnts that are symmetric about a common x axis, this can determine how centred the rover is, and it's path
      
     
+def SegmentDetector(image):
+    img = cv2.imread(image, 0)
+
+    lsd = cv2.createLineSegmentDetector(0)
+
+    lines = lsd.detect(img)[0]
+
+    draw_img = lsd.drawSegments(img, lines)
+
+    cv2.imshow("LSD", draw_img)
+    cv2.waitKey(0)
 
     
 ApproxWhiteRange = {"lower": np.array([0, 0, 220]), "upper": np.array([255, 255, 255]), " name": "white"}
