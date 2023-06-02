@@ -18,24 +18,50 @@ db.connect(function(err) {
     console.log("Connected!");
     });
 
-function getHistory(vertex) {
-  sql = "SELECT dist_from_start, previous_vertex FROM dijkstra WHERE vertex = '" + vertex + "';";
-  db.query(sql, function(err, results){
-      if (err){
-      throw err;
+    function getHistory(vertex) {
+ 
+      // let distance;
+      // let previous;
+  
+      function get_info(vertex, callback) {
+          // console.log("2: ", player1, " ", player2);
+          sql = "SELECT dist_from_start, previous_vertex FROM dijkstra WHERE vertex = '" + vertex + "';";
+          // console.log(sql);
+          db.query(sql, function(err, results){
+              if (err){ 
+              throw err;
+              }
+              // console.log(results);
+              results.forEach((row) => {
+                  distance = row.dist_from_start;
+                  previous = row.previous_vertex;
+  
+                  // console.log("AAAAAAAA  ", P1wins, " ", P2wins);
+              });
+              io.of("/webpage").emit("distance", distance);
+              console.log (distance);
+              console.log ("--------");
+              io.of("/webpage").emit("previous", previous);
+              console.log (previous);
+              console.log ("--------");
+              return callback(results.dist_from_start);
+          });
       }
-      results.forEach((row) => {
-          distance = row.dist_from_start;
-          previous = row.previous_vertex;
+      
+      
+      get_info(vertex, function(result){
+          // console.log("3: ", player1, " ", player2);
+          // console.log(distance);
+          // console.log(previous);
+          // clientIDs.forEach(clientID => {
+          //     io.of("/client").to(clientID).emit("clientData", data);
+          // });
+          // if (gameSend) {
+          //     io.of("/webpage").to(webId).emit("history", data);
+          // }
       });
-      io.of("/webpage").emit("distance", distance);
-      console.log (distance);
-      console.log ("--------");
-      io.of("/webpage").emit("previous", previous);
-      console.log (previous);
-      console.log ("--------");
-  });
-}
+      
+  }
 
 const server = http.createServer(app);
 

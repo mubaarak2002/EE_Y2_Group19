@@ -17,6 +17,23 @@ socket.emit("test", (data) => {
   console.log(data);
 });
 
+socket.on("asdfgh", (data) => {
+  console.log("hehe")
+  console.log(data)
+});
+
+socket.on('distance', function(msg){
+  console.log(msg);
+  document.write(msg);
+  document.write("<br>");
+});
+
+socket.on('previous', function(msg){
+  console.log(msg);
+  document.write(msg);
+  document.write("<br>");
+});
+
 </script>
 </body>
 </html>

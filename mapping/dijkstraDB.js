@@ -81,7 +81,7 @@ function dijkstra(adjacency, start, end) {
 function get_distance(matrix, path) {
     let distance = 0;
     for (let i = 1; i < path.length; i++) {
-        distance += matrix[path[i]][path[i - 1]];
+        distance += matrix[path[i-1]][path[i]];
     }
 
     return distance;
@@ -99,7 +99,7 @@ var result = dijkstra(matrix, 0, 3);
 console.log(result);
 
 var vertex = result[result.length - 1];
-var dist = 4;
+var dist = get_distance(matrix, result);
 var prev = result[result.length - 2]
 var sql = "INSERT INTO dijkstra VALUES ('" + vertex + "', '" + dist + "', '" + prev + "') ON DUPLICATE KEY UPDATE vertex = vertex, dist_from_start = '" + dist + "', previous_vertex = '" + prev + "';" ;
 db.query(sql, (err, result) => {
