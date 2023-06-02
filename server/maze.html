@@ -24,13 +24,13 @@ socket.on("asdfgh", (data) => {
 
 socket.on('distance', function(msg){
   console.log(msg);
-  document.write(msg);
+  document.write("distance:"+ msg);
   document.write("<br>");
 });
 
 socket.on('previous', function(msg){
   console.log(msg);
-  document.write(msg);
+  document.write("previous node:" + msg);
   document.write("<br>");
 });
 
