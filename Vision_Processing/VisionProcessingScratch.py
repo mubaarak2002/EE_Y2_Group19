@@ -639,8 +639,6 @@ def chopchop(lines, mode="return", image="./assets/Course_Images/Straight_Line_1
     
 def houghFiltered(photo, mask, NP=NUM_PATH_ANGLES, DB=DISTANCE_BINS, AR=ANGLE_RANGE, TH=[2,2]):
     #detect lines in an image and return them in the form of (r, theta)
-    
-
 
     print(1)
 
@@ -680,7 +678,6 @@ def Prototyping(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lo
     
     #to finish, basically we need to find all line semgemnts that are symmetric about a common x axis, this can determine how centred the rover is, and it's path
      
-    
 def SegmentDetector(image="./assets/Course_Images/Straight_Line_1.jpeg", mode="showFiltered", lowerRange=np.array([0, 0, 220]), upperRange=np.array([190, 80, 255])):
 
 
@@ -709,9 +706,6 @@ def SegmentDetector(image="./assets/Course_Images/Straight_Line_1.jpeg", mode="s
         plotLinesPoint(image, filtered_image,  lines, mode)
         return lines
         
-    
-
-
 def plotLinesPoint(Source, image, lines, mode="showFiltered"):
     img = cv2.imread(Source, -1)
     fig, ax = plt.subplots()
@@ -784,9 +778,6 @@ def WriteToTemp(list):
             # write each item on a new line
             fp.write("%s\n" % line)
         print('Done')
-
-
-    
 
 def LengthFilter(lines, minLength=0, maxLength=99999):
     #lines in the form [[x1, y1, x2, y2]]
@@ -897,10 +888,49 @@ def usableLines(lines):
         
     return out
     
-    
 def ClosestPointsTable(lines, radius):
     #returns all points within a radius to every other point, stores result in a table
+    #The dictionary will be of the form [x, y]: [ [] , [ (p1, d1), (p2, d2), (p3, d3) ] ....] of increasing distance
+    #away, such that d1 < d3. The first entry, 0, is reserved for the line segment this is a member of, and will show
+    #the next point
+    #note that line segments are only added via the 
     out = {}
+    
+
+    
+    def lineToPoints(lines):
+        points = []
+        for line in lines:
+            points.append( [line[0], line[1]] )
+            points.append( [line[2], line[3]] )
+
+        return points
+
+
+    def pointDist(p1, p2):
+        return math.sqrt( (p2[1] - p1[1]) ** 2 + (p2[0] - p1[0]) ** 2 )
+
+    points = lineToPoints(lines)
+    for point in points:
+        lineSeg = []
+        closetsUnsorted = []
+
+        for otherPoint in points:
+            if pointDist(point, otherPoint) < radius:
+                closetsUnsorted.append(  (otherPoint, pointDist(point, otherPoint))  )
+
+        closest = sorted(closetsUnsorted, key=lambda x: x[1])
+
+        out[point] = [[], closest]    
+    
+    #all points are added, now we need to add them to their line segments
+    for line in lines:
+        start = [ line[0], line[1] ]
+        end = [ line[2], line[3] ]
+
+        out[start].append(start).append(end)
+        out[end].append(start).append(end)
+
     
     return out
 
