@@ -671,9 +671,9 @@ def HalfnHalf(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lowe
     
     #Hough(photo, mask)
     
-    FullSliders(cv2.imread("./assets/LAMP_Images/Big_Red.jpeg", -1))
+    #FullSliders(cv2.imread("./assets/LAMP_Images/Big_Red.jpeg", -1))
     
-    plotHoughLines(photo, None, None, None, mode="given", data=crop(photo, who["h"], who["q"], who["d"]))
+    #plotHoughLines(photo, None, None, None, mode="given", data=crop(photo, who["h"], who["q"], who["d"]))
     #plotHoughLines(photo, None, None, None, mode="given", data=[who["h"], who["q"], who["d"]])
     
     SegmentDetector(photo)
@@ -692,7 +692,7 @@ def SegmentDetector(image):
     lsd = cv2.createLineSegmentDetector(0)
 
     lines = lsd.detect(img)[0]
-
+    print(lines)
     draw_img = lsd.drawSegments(img, lines)
 
     cv2.imshow("LSD", draw_img)
