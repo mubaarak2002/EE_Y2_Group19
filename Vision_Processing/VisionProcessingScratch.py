@@ -138,6 +138,12 @@ def JustMask(image, lowerRange, upperRange):
 
 def FullSliders(Source, range={"lower": np.array([0, 0, 0]), "upper": np.array([255, 255, 255])}):
 
+    #if not isinstance(image, 'str'):
+        #print("Source is string")
+        #Source = cv2.imread(image, -1)
+    #else:
+        #Source = image
+
     ranges = {"lower": npArrayToNormal(range["lower"]), "upper": npArrayToNormal(range["upper"])}
 
     # Create the figure and axes
@@ -255,7 +261,6 @@ blueRanges = {"lower": np.array([138, 129, 143]), "upper": np.array([192, 255, 2
 redRanges = {"lower": np.array([110, 165, 55]), "upper": np.array([160, 255, 175])}
 greenRanges = {"lower": np.array([55, 150, 116]), "upper": np.array([110, 255, 200])}
 totalRanges = {"lower": np.array([0, 0, 0]), "upper": np.array([179, 255, 255])}
-
 RGBMap = [{"lower": np.array([110, 165, 55]), "upper": np.array([160, 255, 175]), "name": "Red"}, {"lower": np.array([138, 129, 143]), "upper": np.array([192, 255, 255]), "name": "Blue "}, {"lower": np.array([55, 150, 116]), "upper": np.array([110, 255, 200]), "name": "Green"}]
 
 #addMarkerMap(ranges = RGBMap)
@@ -360,8 +365,6 @@ def plotHoughLines(photo, hspace, theta, dist, mode="default", data=[]):
         plt.tight_layout()
         plt.show()
         
-    
-    
 def HoughLinesOverlay(photo, data):
     angle_list=[]
     image = cv2.imread(photo, -1)
@@ -402,7 +405,6 @@ def HoughLinesOverlay(photo, data):
     ax[1].imshow(image)
 
     plt.show()
-
 
 def Hough(photo, mask, ANG_MIN=0, ANG_MAX=np.pi, NAB=NUM_PATH_ANGLES, mode="show", filter=True):
 
@@ -447,10 +449,7 @@ def crop(photo, hspace, distances, thetas, topCrop=1/4, bottomCrop=0):
             toRemove.append(i)
     
     return [np.delete(hspace, toRemove), np.delete(distances, toRemove), np.delete(thetas, toRemove)]
-
-
-    
-
+ 
 #for debugging (I think Im loosing my mind)
 def doNothing(photo, h, q, d):
     return {"h": h, "t": q, "d": d}
@@ -645,7 +644,7 @@ def houghFiltered(photo, mask, NP=NUM_PATH_ANGLES, DB=DISTANCE_BINS, AR=ANGLE_RA
 
     print(1)
 
-def HalfnHalf(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lower": np.array([0, 100, 220]), "upper": np.array([190, 180, 255]), "name": "white"}):
+def Prototyping(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lower": np.array([0, 100, 220]), "upper": np.array([190, 180, 255]), "name": "white"}):
     
     
     
@@ -662,11 +661,7 @@ def HalfnHalf(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lowe
     
     lines = crop(photo, who["h"], who["q"], who["d"]) # Will return: return {"h": hspace, "d": distances, "t": thetas}
     
-    
-
-    
-    #lines = doNothing(photo, who["h"], who["q"], who["d"])
-    
+   
 
     
     #Hough(photo, mask)
@@ -686,24 +681,271 @@ def HalfnHalf(photo="./assets/Course_Images/Straight_Line_1.jpeg", ranges={"lowe
     #to finish, basically we need to find all line semgemnts that are symmetric about a common x axis, this can determine how centred the rover is, and it's path
      
     
-def SegmentDetector(image):
-    img = cv2.imread(image, 0)
+def SegmentDetector(image="./assets/Course_Images/Straight_Line_1.jpeg", mode="showFiltered", lowerRange=np.array([0, 0, 220]), upperRange=np.array([190, 80, 255])):
+
+
+
+    img = cv2.imread(image, -1)
 
     lsd = cv2.createLineSegmentDetector(0)
 
-    lines = lsd.detect(img)[0]
-    print(lines)
-    draw_img = lsd.drawSegments(img, lines)
+    filtered_image = JustMask(img, lowerRange, upperRange)
 
-    cv2.imshow("LSD", draw_img)
-    cv2.waitKey(0)
+    lines = lsd.detect(filtered_image)[0]
+
+    
+
+
+    if mode == "returnLines":
+        return lines
+    elif mode =="testSimilarLines":
+        print("currentLineLength: " + str(len(lines)))
+        newLines = SimilarLines(lines)
+        print("newLines: "+ str(len(newLines))) 
+    else:
+        #draw_img = lsd.drawSegments(img, lines)
+        #cv2.imshow("LSD", draw_img)
+        #cv2.waitKey(0)
+        plotLinesPoint(image, filtered_image,  lines, mode)
+        return lines
+        
+    
+
+
+def plotLinesPoint(Source, image, lines, mode="showFiltered"):
+    img = cv2.imread(Source, -1)
+    fig, ax = plt.subplots()
+
+    ax.imshow(img)
+
+    if mode=="showFiltered":
+
+        #we note the optimal filtering path is to always first combine like lines
+
+
+        for line in BorderFilterLines(image, LengthFilter(lines)):
+        #for line in BorderFilterLines(image, lines):
+            x = [line[0][0], line[0][2]]    
+            y = [line[0][1], line[0][3]]
+            ax.plot(x, y, "r")
+    if mode=="showRaw":
+        for line in lines:
+        #for line in BorderFilterLines(image, lines):
+            x = [line[0][0], line[0][2]]    
+            y = [line[0][1], line[0][3]]
+            ax.plot(x, y, "r")
+
+    ax.set_aspect("equal")
+
+    plt.show()
+
+def BorderFilterLines(image, lines, topCrop=1/4, bottomCrop=1.8/9, leftCrop=0, rightCrop=0):
+    #VARIABLES:
+    #
+    #  all the ___crop is "what percentage of the frame do you want to remove, starting from that position"
+    #  Thus, the default will remove the top quarter of the frame, and keep the rest
+    #  by "remove", the algorithm follows "if both points of the line are in the region, delete it"
+    # 
+    #removes all lines above a certain height, and below a certain height
+    #dont forget lines are weirdly in the form [  ...  [[x1, y1, x2, y2]], [[x1, y1, x2, y2]]  ...  ]
+
+    left = 0
+    bottom = image.shape[0]
+    top = 0
+    right = image.shape[1]
+
+    minXVal = right * leftCrop
+    maxXVal = (1 - rightCrop) * right 
+    minYVal = bottom * topCrop
+    maxYVal = (1 - bottomCrop) * bottom
+
+    #print("limits: Xmin = " + str(minXVal) + " Xmax = " + str(maxXVal) + " Ymin = " + str(minYVal) + " Ymax = " + str(maxYVal))
+
+    out = []
+    for linearray in lines:
+        line = linearray[0]
+        x = [line[0], line[2]]
+        y = [line[1], line[3]]
+
+        #rightIntercept < (topCrop) * bottom and leftIntercept < (topCrop) * bottom 
+        
+        #check top, bottom, left, right boundarys
+        #print("Currently Checking: " + str(x) + " " + str(y))
+        if (x[0] >  minXVal and x[1] > minXVal and x[0] < maxXVal and x[1] < maxXVal):
+            if(y[0] > minYVal and y[1] > minYVal and y[0] < maxYVal and y[1] < maxYVal):
+                out.append([line])
+
+    return out
+
+def WriteToTemp(list):
+    
+    with open(r'./assets/temp.txt', 'w') as fp:
+        for line in list:
+            # write each item on a new line
+            fp.write("%s\n" % line)
+        print('Done')
+
+
+def SegmentLength(line):
+    #length is sqrt of change in x and change in y
+    return math.sqrt( (line[0][0] - line[0][2]) ** 2 + (line[0][1] - line[0][3]) ** 2 )
+
+def LengthFilter(lines, minLength=0, maxLength=99999):
+    #lines in the form [[x1, y1, x2, y2]]
+
+    newLines = []
+
+    for line in lines:
+        if((SegmentLength(line) < maxLength) and (SegmentLength(line) > minLength)):
+            newLines.append(line)
+
+
+    return newLines
+        
+
+#FullSliders(cv2.imread("./assets/Course_Images/Straight_Line_1.jpeg", -1))
+
+def linePointAngle(line, point):
+    #takes in a line of the form [[x1, y1, x2, y2]], and a point [x3, y3], then returns the angle (degrees) between them
+    #the angle will be taken between the line, and the line connecting the point, and the closest endpoint on the line
+
+    #neccessary for my mental sanity
+    x1 = line[0][0]
+    y1 = line[0][1]
+    x2 = line[0][2]
+    y2 = line[0][3]
+    px = point[0]
+    py = point[1]
+
+
+    if(SegmentLength([[  x1, y1, px, py  ]]) < SegmentLength([[  x2, y2, px, py  ]])):
+        
+        #find angle between origonal line, and x1,y1 -> px,py
+
+        #find the vectors
+        v1 = (x2 - x1, y2 - y1)
+        v2 = (px - x1, py - y1)
+
+        dot_product = v1[0] * v2[0] + v1[1] * v2[1]
+
+        magnitude1 = math.sqrt(v1[0] ** 2 + v1[1] ** 2)
+        magnitude2 = math.sqrt(v2[0] ** 2 + v2[1] ** 2)
+
+        cos = dot_product / (magnitude1 * magnitude2)
+
+        angle_radians = math.acos(cos)
+
+        return math.degrees(angle_radians)
+
+
+    else:
+        #the opposite
+
+        #find the vectors
+        v1 = (x2 - x1, y2 - y1)
+        v2 = (px - x2, py - y2)
+
+        dot_product = v1[0] * v2[0] + v1[1] * v2[1]
+
+        magnitude1 = math.sqrt(v1[0] ** 2 + v1[1] ** 2)
+        magnitude2 = math.sqrt(v2[0] ** 2 + v2[1] ** 2)
+
+        cos = dot_product / (magnitude1 * magnitude2)
+
+        angle_radians = math.acos(cos)
+
+        return math.degrees(angle_radians)
+
+
+def SimilarLines(lines, maxRadius=10, maxAngleDeviation=20):
+
+    #This is a greedey algorithm, that takes a line, then goes from each line, observes the end points of the line with the angle of the line.
+    #then, it observes the endpoints and sees if the start of any other lines are inside that line, then if the angle of that with respect 
+    #to the current line line is within the deviation, these two lines will have their endpoints extended to connect with each other, 
+    #and will be considered to be the same line. Afterwards, via some means I have not yet figured out, the LengthFilter will then not delete
+    #this line
+    # 
+
+    for index in range(len(lines)):
+        for otherIndex in range (index-1):
+
+            #get the start and end of this line
+            startpoint = [lines[index][0][0], lines[index][0][1]] 
+            endpoint = [lines[index][0][2], lines[index][0][3]]
+
+            #get the start and end of the new line to check
+            otherStartpoint = [lines[otherIndex][0][0], lines[otherIndex][0][1]] 
+            otherEndpoint = [lines[otherIndex][0][2], lines[otherIndex][0][3]]
+
+            #find if the new line's startpoint is near the points of the index, and has the correct angle
+            if(maxRadius > SegmentLength([startpoint + otherStartpoint])):
+
+                #We now know for the line in question, that it's startpoint and the other startpoint are close, so now we test the Angle
+                if(maxAngleDeviation > linePointAngle(lines[index], otherStartpoint)):
+                    
+                    #now, the two lines in question match up, so we must now combine them to their intersection point
+                    
+                    #algorithm says because distance is small, can just extend first line to be the same value as the second line
+
+                    #remove the old line and add the extended line
+                    newLines = np.delete(lines, index)
+                    np.append(newLines, [    [startpoint + otherStartpoint]    ])
+                    return SimilarLines(newLines, maxRadius, maxAngleDeviation)
+
+
+
+            elif (maxRadius > SegmentLength([endpoint + otherStartpoint])):
+                if(maxAngleDeviation > linePointAngle(lines[index], otherStartpoint)):
+
+                    newLines = np.delete(lines, index)
+                    np.append(newLines, [    [endpoint + otherStartpoint]    ])
+                    return SimilarLines(lines, maxRadius, maxAngleDeviation)
+
+            elif (maxRadius > SegmentLength([startpoint + otherEndpoint])):
+                if(maxAngleDeviation > linePointAngle(lines[index], otherEndpoint)):
+
+                    newLines = np.delete(lines, index)
+                    np.append(newLines, [    [endpoint + otherEndpoint]    ])
+                    return SimilarLines(lines, maxRadius, maxAngleDeviation)
+                
+
+            elif (maxRadius > SegmentLength([endpoint + otherEndpoint])):
+                if(maxAngleDeviation > linePointAngle(lines[index], otherEndpoint)):
+
+                    newLines = np.delete(lines, index)
+                    np.append(newLines, [    [endpoint +otherEndpoint ]    ])
+                    return SimilarLines(lines, maxRadius, maxAngleDeviation)
+    
+
+    return lines
+
+
+
+                
+
+
+
+            
+
+
+
+
+
 
     
 ApproxWhiteRange = {"lower": np.array([0, 0, 220]), "upper": np.array([255, 255, 255]), " name": "white"}
+
+
+#SegmentDetector(lowerRange=ApproxWhiteRange["lower"], upperRange=ApproxWhiteRange["upper"])
+
+SegmentDetector(mode="testSimilarLines")
+
+
+
 #photo_process(photo="./assets/Course_Images/Straight_Line_1.jpeg", mode="FullSliders")
 
 
-HalfnHalf(ranges=ApproxWhiteRange)
+#Prototyping(ranges=ApproxWhiteRange)
 
 #num of angle bins and distance bins required (ish)
 [300, 80]
