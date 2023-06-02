@@ -1,7 +1,6 @@
 <html>
 <div id="container"></div>
 <body>
-test
 <script src="/socket.io/socket.io.js"></script>
 <script>
 
@@ -10,6 +9,11 @@ const socket = io("/webpage");
 
 // listen for "connection" event from webpage
 socket.on("connection", (data) => {
+  console.log(data);
+});
+
+socket.emit("test", (data) => {
+  console.log("asfdg");
   console.log(data);
 });
 
