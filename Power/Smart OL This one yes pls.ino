@@ -6,10 +6,9 @@
 */
 
 #include <Wire.h>
-#include <Adafruit_INA219.h>
+#include <INA219_WE.h>
 
-
-Adafruit_INA219 ina219; // this is the instantiation of the library for the current sensor
+INA219_WE ina219; // this is the instantiation of the library for the current sensor
 int tick;
 float open_loop, closed_loop; // Duty Cycles
 float va,vb,vref,iL,dutyref,current_mA; // Measurement Variables
@@ -29,10 +28,12 @@ float current_power_val;
   //added for MPP
 int arrCount;
 float lastGenerated[2][10]; //[ [10 last power values], [10 last delta values]
-float pow_last5av[5];    //10th to 6th most recent power readings average
-float pow_recent5av[5];  //most recent 5 power readings average
-float delta_last5av[5];    //10th to 6th most recent power readings average
-float delta_recent5av[5];  //most recent 5 power readings average
+float pow_last5av;    //10th to 6th most recent power readings average
+float pow_recent5av;  //most recent 5 power readings average
+float last5[5][2];
+float recent5[5][2];
+float delta_last5av;    //10th to 6th most recent power readings average
+float delta_recent5av;  //most recent 5 power readings average
 const int n = 5;    //scalable if want to log more than the last 10 values
 const int nend = 2 * n - 1;
 const float increment = 0.005;
@@ -79,7 +80,9 @@ void setup() {
 
   //for MPP
   arrCount = 0;
-  lastGenerated = [[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]];
+  memcpy(lastGenerated, (const float[2][10]) {{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0}}, sizeof(lastGenerated));
+
+  
 }
 
  void loop() {
@@ -100,51 +103,49 @@ void setup() {
 //    float delta_last5av;    //10th to 6th most recent power readings average
 //    float delta_recent5av;  //most recent 5 power readings average
 
-    float[5][2] last5av; 
-    float[5][2] recent5av;
-
+    float delta = open_loop;
     arrCount += 1;
-    int pos = arrCount%(2 * n)
+    int pos = arrCount%(2 * n);
 
     
     lastGenerated[pos][0] = current_mA * vb;
-    lastGenerated[pos][1] = dutyRef;
+    lastGenerated[pos][1] = dutyref;
     
     
-    if [pos > n]{       // format the arrays of last measured power and duty
+    if (pos > n) {       // format the arrays of last measured power and duty
       for (int i = 0; i <= n-1; i++) {
         if (i + pos > nend){
-          recent5av[i][0] = lastGenerated[i][0];
-          recent5av[i][1] = lastGenerated[i][1];
-        }else{
-          recent5av[i][0] = lastGenerated[i+n][0];
-          recent5av[i][1] = lastGenerated[i+n][1];
+          recent5[i][0] = lastGenerated[i][0];
+          recent5[i][1] = lastGenerated[i][1];
+        } else{
+          recent5[i][0] = lastGenerated[i+n][0];
+          recent5[i][1] = lastGenerated[i+n][1];
         }
-        last5av[i][0] = lastGenerated[pos - n+ i][0];
-        last5av[i][1] = lastGenerated[pos - n+ i][1];
+        last5[i][0] = lastGenerated[pos - n+ i][0];
+        last5[i][1] = lastGenerated[pos - n+ i][1];
       }
       
-    }else{  // pos < 5
+    } else{  // pos < 5
       for (int i = 0; i <= n-1; i++) {
-          recent5av[i][0] = lastGenerated[i+pos][0];
-          recent5av[i][1] = lastGenerated[i+pos][1];
+          recent5[i][0] = lastGenerated[i+pos][0];
+          recent5[i][1] = lastGenerated[i+pos][1];
           
         if (i + pos > 9){
-          last5av[i][0] = lastGenerated[i+ pos - 2*n][0];
-          last5av[i][1] = lastGenerated[i + pos - 2*n][1];
+          last5[i][0] = lastGenerated[i+ pos - 2*n][0];
+          last5[i][1] = lastGenerated[i + pos - 2*n][1];
         }else{
-          recent5av[i][0] = lastGenerated[pos + i+n][0];
-          recent5av[i][1] = lastGenerated[pos + i+n][1];
+          recent5[i][0] = lastGenerated[pos + i+n][0];
+          recent5[i][1] = lastGenerated[pos + i+n][1];
         }
       }
     } //Two arrays updated
 
     //now calculate power averages and delta averages
     for (int i = 0; i <= n-1; i++) {
-      pow_last5av     += last5av[i][0];
-      pow_recent5av   += recent5av[i][0];
-      delta_last5av   += last5av[i][1];
-      delta_recent5av += recent5av[i][1];
+      pow_last5av     += last5[i][0];
+      pow_recent5av   += recent5[i][0];
+      delta_last5av   += last5[i][1];
+      delta_recent5av += recent5[i][1];
     }
     pow_last5av     = pow_last5av/5;
     pow_recent5av   = pow_recent5av/5;
@@ -154,11 +155,14 @@ void setup() {
     //Now adjust duty - increment constant defined at start
 
     if( pow_last5av  > pow_recent5av ){
+      Serial.print("CHANGE\n");
       if (delta_last5av > delta_recent5av){
         delta += increment;
       }else{
         delta -= increment;
+      }
     }else{
+      Serial.print("CHANGE0\n");
       if (delta_last5av > delta_recent5av){
         delta -= increment;
       }else{
@@ -166,10 +170,17 @@ void setup() {
       }
     }
 
+    // Clamp duty cycle within limits
+    delta = saturation(delta, 0.99, 0.33);
+  
+    // Update the open loop duty cycle
+    open_loop = delta;
+
+
     //every 500 counts, reset everything
-    if (count % 500 == 0){
+    if (count % 1000 == 0){
       open_loop = 0.5;
-      lastGenerated = [[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]];
+      memcpy(lastGenerated, (const float[2][10]) {{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0}}, sizeof(lastGenerated));
         //clear all values
     }else{
       open_loop = delta;
