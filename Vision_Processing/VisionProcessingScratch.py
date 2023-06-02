@@ -786,9 +786,7 @@ def WriteToTemp(list):
         print('Done')
 
 
-def SegmentLength(line):
-    #length is sqrt of change in x and change in y
-    return math.sqrt( (line[0][0] - line[0][2]) ** 2 + (line[0][1] - line[0][3]) ** 2 )
+    
 
 def LengthFilter(lines, minLength=0, maxLength=99999):
     #lines in the form [[x1, y1, x2, y2]]
@@ -856,6 +854,72 @@ def linePointAngle(line, point):
 
         return math.degrees(angle_radians)
 
+def listToDict(list):
+    #simply turns a list [a, b, c, d] -> {0: a, 1: b, 2: c, 3: d}
+    
+    out = {}
+    
+    for index in range(len(list)):
+        out[index] = list[index]
+        
+    return out
+
+def SegmentLength(line, mode="2"):
+    #length is sqrt of change in x and change in y
+    
+    #the "many" mode is where a series of points is being used to describe a longer line, and is in the form [ [x1, y1], [x2, y2], [x3, y3], ... , [xn, yn] ]
+    
+    if mode == "many":
+        sum = 0
+        
+        prev = line[0]
+        
+        for point in line:
+            sum += math.sqrt( (point[0] - prev[0]) ** 2 + (point[1] - prev[1]) ** 2 )
+            
+            
+        return sum    
+    else:
+        return math.sqrt( (line[0][0] - line[0][2]) ** 2 + (line[0][1] - line[0][3]) ** 2 )
+    
+def usableLines(lines):
+    #this takes in the output of SegmentDetector, which is frankly a useless data structure, and turns it into a usable structure
+    #where every value is turned into a dictionary entry of the form index: [[x1,y1], [x2, y2]]. Such that we can then add more points
+    #to create longer lines, and remove lines if needed
+    
+    #input lines is in the form [ ... [[x1, y1, x2, y2]] ... ] and we shall fix that
+    
+    out = {}
+    
+    for index in range(len(lines)):
+        out[index] = [ [  lines[index][0][0] , lines[index][0][1]  ], [  lines[index][0][2], lines[index][0][3]  ]  ]
+        
+        
+    return out
+    
+    
+def ClosestPointsTable(lines, radius):
+    #returns all points within a radius to every other point, stores result in a table
+    out = {}
+    
+    return out
+
+
+def PointProximities(uselessLines, radius):
+    #takes in all the lines, then, finds all points that are close to eachother within the proximity, returning a memoised table, then 
+    #returns the lines, in a usable form, with the memoised table that is all the points 
+
+    memo = {}
+    lines = usableLines(uselessLines)
+    
+    
+    return lines, memo
+    
+    
+    
+     
+    
+    
 
 def SimilarLines(lines, maxRadius=10, maxAngleDeviation=20):
 
