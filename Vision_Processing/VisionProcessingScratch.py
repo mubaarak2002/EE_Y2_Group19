@@ -901,14 +901,43 @@ def ClosestPointsTable(lines, radius):
     def lineToPoints(lines):
         points = []
         for line in lines:
-            points.append( [line[0], line[1]] )
-            points.append( [line[2], line[3]] )
+            points.append( [line[0][0], line[0][1]] )
+            points.append( [line[0][2], line[0][3]] )
 
         return points
 
 
     def pointDist(p1, p2):
         return math.sqrt( (p2[1] - p1[1]) ** 2 + (p2[0] - p1[0]) ** 2 )
+    
+    
+    def str2CoOrd(coordinates_string):
+        # Remove the square brackets and any whitespace
+        coordinates_string = coordinates_string.replace("[", "").replace("]", "").replace(" ", "")
+        
+        # Split the string by comma
+        coordinates_list = coordinates_string.split(",")
+        
+        # Convert each coordinate to a float
+        coordinates_list = [float(coord) for coord in coordinates_list]
+        
+        return coordinates_list
+    
+    
+    def coOrd2Str(coordinates_list):
+        # Convert each coordinate to a string
+        coordinates_string = [str(coord) for coord in coordinates_list]
+        
+        # Join the coordinates with commas
+        coordinates_string = ", ".join(coordinates_string)
+        
+        # Add square brackets to the string
+        coordinates_string = "[" + coordinates_string + "]"
+        
+        return coordinates_string
+        
+
+
 
     points = lineToPoints(lines)
     for point in points:
@@ -921,15 +950,15 @@ def ClosestPointsTable(lines, radius):
 
         closest = sorted(closetsUnsorted, key=lambda x: x[1])
 
-        out[point] = [[], closest]    
+        out[coOrd2Str(point)] = closest    
     
     #all points are added, now we need to add them to their line segments
     for line in lines:
-        start = [ line[0], line[1] ]
-        end = [ line[2], line[3] ]
+        start = [ line[0][0], line[0][1] ]
+        end = [ line[0][2], line[0][3] ]
 
-        out[start].append(start).append(end)
-        out[end].append(start).append(end)
+        out[coOrd2Str(start)] = [[start, end],  out[coOrd2Str(start)]]
+        out[coOrd2Str(end)] = [[start, end], out[coOrd2Str(start)]]
 
     
     return out
@@ -947,7 +976,7 @@ def PointProximities(uselessLines, radius):
     
     
     
-     
+print(ClosestPointsTable(SegmentDetector(mode="returnLines"), 10))
     
     
 
@@ -1032,7 +1061,7 @@ ApproxWhiteRange = {"lower": np.array([0, 0, 220]), "upper": np.array([255, 255,
 
 #SegmentDetector(lowerRange=ApproxWhiteRange["lower"], upperRange=ApproxWhiteRange["upper"])
 
-SegmentDetector(mode="testSimilarLines")
+#SegmentDetector(mode="testSimilarLines")
 
 
 
