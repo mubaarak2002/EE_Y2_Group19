@@ -10,6 +10,7 @@ import math
 from skimage.transform import hough_line as hl
 from skimage.transform import  hough_line_peaks as hlp
 
+
 #ALL GLOBAL VARIABLES:
 global NUM_PATH_ANGLES
 #this is how many angles we use (the rover will round all paths into 360 degreese divided into however many angles we allow)
@@ -975,9 +976,7 @@ def PointProximities(uselessLines, radius):
     return lines, memo
     
     
-    
-print(ClosestPointsTable(SegmentDetector(mode="returnLines"), 10))
-    
+
     
 
 def SimilarLines(lines, maxRadius=10, maxAngleDeviation=20):
@@ -1047,9 +1046,23 @@ def SimilarLines(lines, maxRadius=10, maxAngleDeviation=20):
                 
 
 
+img = photo_process(photo="./assets/Course_Images/Straight_Line_1.jpeg", mode="JustMask", ranges={"lower": np.array([0, 0, 220]), "upper": np.array([190, 80, 255])})
 
+cv2.imwrite("SavedPhoto.jpg", img)
+
+
+out = []
+for x in range(len(img)):
+    for y in range(len(img[x])):
+        #print(img[x][y])
+        if img[x][y] != 0:
+            out.append([x,y])
             
+WriteToTemp(out)
 
+
+#print(ClosestPointsTable(SegmentDetector(mode="returnLines"), 10))
+    
 
 
 
