@@ -38,10 +38,10 @@ char abs_to_rel(char absN, char absT){
 char read_f(){
     //TODO:Retrieving coordinate information in relative directions from previous step
 }
-void collect_info(char maze[5000][5000],int x_cordinate, int y_cordinate, char absN){
+void collect_info(char maze[5000][5000],xyTypeDef now, char absN){
 
     //record the information of the maze
-    if(maze[x][y]==0){//which means that the cordinate now has not been written before, so writting it in
+    if(maze[now.x][now.y]==0){//which means that the cordinate now has not been written before, so writting it in
         char wall=0xf0;
         char k=0;
         for(int i=0;i<4;i++)
@@ -50,8 +50,8 @@ void collect_info(char maze[5000][5000],int x_cordinate, int y_cordinate, char a
             //should be like:k should be the informatio from the light and transform it to relative direction;
             //the value of wall should be the value after a bitwise OR operation between val_wall and (k<<i), and assign the result back to val_wall.
         }
-        maze[y_cordinate][x_cordinate] &= wall;  // write the information of wall in high 4-bits
-        maze[y_cordinate][x_cordinate] &= ((absN<<4)|0x0f);  // write the future direction in low 4-bits
+        maze[now.y][now.x] &= wall;  // write the information of wall in high 4-bits
+        maze[now.y][now.x] &= ((absN<<4)|0x0f);  // write the future direction in low 4-bits
     }
 }
 /**
@@ -62,23 +62,23 @@ void collect_info(char maze[5000][5000],int x_cordinate, int y_cordinate, char a
 * Scan the surroundings, if there is an unvisited cell, proceed to it.
 * If all surrounding cells have been visited, then read the upper 4 bits to determine the direction for backtracking.
 **/
-        char is_path(char maze[5000][5000], int x_cordinate, int y_cordinate, char absN){ // Determine if this direction is connected
-            return !((maze[y_cordinate][x_cordinate]>>absN)&0x01);
+        char is_path(char maze[5000][5000], xyTypeDef now, char absN){ // Determine if this direction is connected
+            return !((maze[now.y][now.x]>>absN)&0x01);
         }
-        char is_new(char maze[5000][5000], int x_cordinate, int y_cordinate, char absN){ // Determine if this direction leads to a new cell
-            if(absD==0) return (maze[y_cordinate-1][x_cordinate]>>4)==0x0f;
-            if(absD==1) return (maze[y_cordinate][x_cordinate+1]>>4)==0x0f;
-            if(absD==2) return (maze[y_cordinate+1][x_cordinate]>>4)==0x0f;
-            if(absD==3) return (maze[y_cordinate][x_cordinate-1]>>4)==0x0f;
+        char is_new(char maze[5000][5000], xyTypeDef now, char absN){ // Determine if this direction leads to a new cell
+            if(absD==0) return (maze[now.y-1][now.x]>>4)==0x0f;
+            if(absD==1) return (maze[now.y][now.x+1]>>4)==0x0f;
+            if(absD==2) return (maze[now.y+1][now.x]>>4)==0x0f;
+            if(absD==3) return (maze[now.y][now.x-1]>>4)==0x0f;
             return 0;
         }
-        char search_dir(char maze[5000][5000], int x_cordinate, int y_cordinate, char flag){ // Select direction
+        char search_dir(char maze[5000][5000], xyTypeDef now, char flag){ // Select direction
             char i;
-            char pre = maze[y_cordinate][x_cordinate] >> 4;
+            char pre = maze[now.y][now.x] >> 4;
             char back;
             if(!flag){ // If not sprinting, scan the four directions for walkability
                 for(i=0; i<4; i++){
-                if(is_path(maze, int x_cordinate, int y_cordinate, i) && is_new(maze, int x_cordinate, int y_cordinate, i)){ // Check if there is a wall and if it has been visited
+                if(is_path(maze, xyTypeDef now, i) && is_new(maze, xyTypeDef now, i)){ // Check if there is a wall and if it has been visited
                     return i;
                 }
             }
@@ -91,7 +91,7 @@ void collect_info(char maze[5000][5000],int x_cordinate, int y_cordinate, char a
 /** Key Function Set: Execution
 * Based on the information obtained from the previous step, execute the actions.
 **/
-    void go_to_next(int *x_cordinate, int *y_cordinate, char *absN, char absT){
+    void go_to_next(xyTypeDef *now, char *absN, char absT){
         char relD = abs_to_rel(*absN, absT);
         // Update the current coordinates and absolute direction
         if(absT == 0) (now->y)--;
