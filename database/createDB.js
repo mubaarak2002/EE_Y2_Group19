@@ -15,6 +15,6 @@ db.connect(function(err) {
     });
   });
 
-db.end((err) => {
-  console.log("connection ended");
-});
+// db.end((err) => {
+//   console.log("connection ended");
+// });

@@ -18,24 +18,25 @@ db.connect(function(err) {
     console.log("Connected!");
     });
 
-function getHistory(vertex) {
-  sql = "SELECT dist_from_start, previous_vertex FROM dijkstra WHERE vertex = '" + vertex + "';";
-  db.query(sql, function(err, results){
-      if (err){
-      throw err;
-      }
-      results.forEach((row) => {
-          distance = row.dist_from_start;
-          previous = row.previous_vertex;
-      });
-      io.of("/webpage").emit("distance", distance);
-      console.log (distance);
-      console.log ("--------");
-      io.of("/webpage").emit("previous", previous);
-      console.log (previous);
-      console.log ("--------");
-  });
-}
+// function getHistory(vertex) {
+//   sql = "SELECT dist_from_start, previous_vertex, angle FROM dijkstra WHERE vertex = '" + vertex + "';";
+//   db.query(sql, function(err, results){
+//       if (err){
+//       throw err;
+//       }
+//       results.forEach((row) => {
+//           distance = row.dist_from_start;
+//           previous = row.previous_vertex;
+//           angle = row.angle;
+//       });
+//       io.of("/webpage").emit("distance", {dist: distance, prev: previous, angle: angle});
+//       console.log (distance);
+//       console.log ("--------");
+//       // io.of("/webpage").emit("previous", previous);
+//       console.log (previous);
+//       console.log ("--------");
+//   });
+// }
 
 const server = http.createServer(app);
 
@@ -63,7 +64,9 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
 
 //for testing, we're just going to send data to the client every second
 setInterval( function() {
-  getHistory(3);
+  // getHistory(3);
+  io.of("/webpage").emit("distance", {dist: 5, prev: 1, angle: 45});
+  io.of("/webpage").emit("distance", {dist: 10, prev: 2, angle: 90});
 }, 1000);
 
 
