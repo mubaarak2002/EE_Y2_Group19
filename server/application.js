@@ -46,6 +46,10 @@ server.listen(3000, () => {
   console.log("Application started and Listening on port 3000");
 });
 
+// server.listen(8080, () => {
+//   console.log("Listening on port 8080 for esp32");
+// });
+
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/maze.html");
 });
@@ -62,14 +66,16 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         socket.disconnect();
     }
 
-//for testing, we're going to send data to the client every second
-setInterval( function() {
-  // getHistory(3);
-  io.of("/webpage").emit("distance", {dist: 5, prev: 1, angle: 45});
-  io.of("/webpage").emit("distance", {dist: 10, prev: 2, angle: 90});
-}, 1000);
+  //for testing, we're going to send data to the client every second
+  // setInterval( function() {
+  //   // getHistory(3);
+  //   socket.emit("distance", {dist: 5, prev: 1, angle: 45});
+  //   socket.emit("distance", {dist: 10, prev: 2, angle: 90});
+  // }, 1000);
 
-
+  socket.on("test", function (){
+    console.log("test")
+  });
 
 	socket.on("disconnect", function () {
 		console.log(socket.request.connection.remoteAddress + " has disconnected");
