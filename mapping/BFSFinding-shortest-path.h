@@ -59,7 +59,7 @@ bit bfs(char maze[5000][5000], xyTypeDef beg, xyTypeDef end) { // Breadth-First 
             if (temp.x >127 || temp.y>127) continue;
             if(is_path(maze, now, i) && (height[temp.y][temp.x]==height[now.y][now.x]-1)){  // If the coordinate is connected and the height is decreasing
                 maze[temp.y][temp.x] |= 0xf0; // Initialize the high four bits of the maze array at that coordinate
-                maze[temp.y][temp.x] &= ((i<<4)|0x0f);  // Write this direction to the high four bits
+                maze[temp.y][temp.x] &= ((i<<8)|0x0f);  // Write this direction to the high four bits
                 now = temp;  // switch nodes
                 break;
             }
