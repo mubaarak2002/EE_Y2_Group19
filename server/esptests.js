@@ -13,6 +13,7 @@ var db = mysql.createConnection({
 
 let distance;
 let previous;
+let coordinates;
 
 db.connect(function(err) {
     if (err) throw err;
@@ -68,11 +69,11 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     }
 
   //for testing, we're going to send data to the client every second
-  // setInterval( function() {
-  //   // getHistory(3);
-  //   socket.emit("distance", {dist: 5, prev: 1, angle: 45});
-  //   socket.emit("distance", {dist: 10, prev: 2, angle: 90});
-  // }, 1000);
+  setInterval( function() {
+    // getHistory(3);
+    socket.emit("distance", {dist: 5, prev: 1, angle: 45});
+    socket.emit("distance", {dist: 10, prev: 2, angle: 90});
+  }, 1000);
 
   socket.on("test", function (){
     console.log("test")
@@ -229,16 +230,16 @@ wsServer.on('request', function(request) {
   connection.on('message', function(message) {
       if (message.type === 'utf8') {
           console.log('Received Message: ' + message.utf8Data);
+          coordinates = message.utf8Data;
           //connection.sendUTF(message.utf8Data); this resend the reseived message, instead of it i will send a custom message. hello from nodejs
           connection.sendUTF("Hello from node.js");
       }
+
       else if (message.type === 'binary') {
           console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
           connection.sendBytes(message.binaryData);
       }
   });
-
-
 
   connection.on('close', function(reasonCode, description) {
       console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
