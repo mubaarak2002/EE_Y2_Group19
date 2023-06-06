@@ -73,6 +73,7 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     // getHistory(3);
     socket.emit("distance", {dist: 5, prev: 1, angle: 45});
     socket.emit("distance", {dist: 10, prev: 2, angle: 90});
+    socket.emit("distance", {dist: coordinates, prev: 2, angle: 90});
   }, 1000);
 
   socket.on("test", function (){
