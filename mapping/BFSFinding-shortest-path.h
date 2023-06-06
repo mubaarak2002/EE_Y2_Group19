@@ -28,12 +28,16 @@ bit bfs(char maze[5000][5000], xyTypeDef beg, xyTypeDef end) { // Breadth-First 
         for (j = 0; j < queue_len; j++) {  // (Since an array is used to simulate the queue, all elements need to be manually shifted forward)
             queue_xy[j] = queue_xy[j + 1];
         }
-        for (i = 0; i < 4; i++) {  // Check four directions
+        for (i = 0; i < 8; i++) {  // Check four directions
             temp = queue_head;
             if (i == 0)  temp.y = queue_head.y - 1;
-            if (i == 1)  temp.x = queue_head.x + 1;
-            if (i == 2)  temp.y = queue_head.y + 1;
-            if (i == 3)  temp.x = queue_head.x - 1;
+            if (i == 2)  temp.x = queue_head.x + 1;
+            if (i == 4)  temp.y = queue_head.y + 1;
+            if (i == 6)  temp.x = queue_head.x - 1;
+            if (i == 1)  {temp.y = queue_head.y - 1; temp.x=queue_head.x+1;}
+            if (i == 3)  {temp.x = queue_head.x + 1; temp.y=queue_head.y+1;}
+            if (i == 5)  {temp.y = queue_head.y + 1; temp.x=queue_head.x-1;}
+            if (i == 7)  {temp.x = queue_head.x - 1; temp.x=queue_head.y-1;}
             if (temp.x > 127 || temp.y > 127)  continue;
             if (is_path(maze, queue_head, i) && height[temp.y][temp.x] == 255) {  // If the coordinate is connected and accessed for the first time
                 height[temp.y][temp.x] = height[queue_head.y][queue_head.x] + 1;  // Increase the altitude of the coordinate by 1 in the altitude table
