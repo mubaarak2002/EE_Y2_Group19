@@ -232,6 +232,9 @@ wsServer.on('request', function(request) {
       if (message.type === 'utf8') {
           console.log('Received Message: ' + message.utf8Data);
           coordinates = message.utf8Data;
+          var string = coordinates.split(" ");
+          console.log(string[0]);
+          console.log(string[1]);
           //connection.sendUTF(message.utf8Data); this resend the reseived message, instead of it i will send a custom message. hello from nodejs
           connection.sendUTF("Hello from node.js");
       }
