@@ -50,12 +50,16 @@ bit bfs(char maze[5000][5000], xyTypeDef beg, xyTypeDef end) { // Breadth-First 
     now.x = end.x;
     now.y = end.y;
     while (!(now.x == 0 && now.y == 0)) {  // If not yet at the starting point
-        for (i = 0; i < 4; i++) {  // Scan four directions
+        for (i = 0; i < 8; i++) {  // Scan four directions
             temp = now;
-            if (i == 0)  temp.y = now.y - 1;
-            if (i == 1)  temp.x = now.x + 1;
-            if (i == 2)  temp.y = now.y + 1;
-            if (i == 3)  temp.x = now.x - 1;
+            if (i == 0)  temp.y = queue_head.y - 1;
+            if (i == 2)  temp.x = queue_head.x + 1;
+            if (i == 4)  temp.y = queue_head.y + 1;
+            if (i == 6)  temp.x = queue_head.x - 1;
+            if (i == 1)  {temp.y = queue_head.y - 1; temp.x=queue_head.x+1;}
+            if (i == 3)  {temp.x = queue_head.x + 1; temp.y=queue_head.y+1;}
+            if (i == 5)  {temp.y = queue_head.y + 1; temp.x=queue_head.x-1;}
+            if (i == 7)  {temp.x = queue_head.x - 1; temp.x=queue_head.y-1;}
             if (temp.x >127 || temp.y>127) continue;
             if(is_path(maze, now, i) && (height[temp.y][temp.x]==height[now.y][now.x]-1)){  // If the coordinate is connected and the height is decreasing
                 maze[temp.y][temp.x] |= 0xf0; // Initialize the high four bits of the maze array at that coordinate
