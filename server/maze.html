@@ -1,8 +1,24 @@
 <html>
+<canvas id="canvas" height="600" width="600"></canvas>
 <div id="container"></div>
 <body>
 <script src="/socket.io/socket.io.js"></script>
 <script>
+
+function drawLine(ctx, begin, end, stroke = 'black', width = 1) {
+    if (stroke) {
+        ctx.strokeStyle = stroke;
+    }
+
+    if (width) {
+        ctx.lineWidth = width;
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(...begin);
+    ctx.lineTo(...end);
+    ctx.stroke();
+}
 
 // open socket
 const socket = io("/webpage");
@@ -12,26 +28,19 @@ socket.on("connection", (data) => {
   console.log(data);
 });
 
-socket.emit("test", (data) => {
-  console.log("asfdg");
-  console.log(data);
-});
-
-socket.on("asdfgh", (data) => {
-  console.log("hehe")
-  console.log(data)
-});
-
-socket.on('distance', function(msg){
-  console.log(msg);
-  document.write("distance:"+ msg);
-  document.write("<br>");
-});
-
-socket.on('previous', function(msg){
-  console.log(msg);
-  document.write("previous node:" + msg);
-  document.write("<br>");
+//listens for node data from the server
+socket.on('distance', function(data){
+  distance = data.dist
+  previous = data.prev
+  console.log(distance);
+  console.log(previous);
+  const canvas = document.querySelector('#canvas');
+  if (canvas.getContext) {
+    const ctx = canvas.getContext('2d');
+    //need to calculate end position here and send to function
+    //also need to remember the end position of previous line and use that for the start of the next line
+    drawLine(ctx, [100, distance*25], [200, 600], 'green', 5);
+  }
 });
 
 </script>

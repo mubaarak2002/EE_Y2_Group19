@@ -62,7 +62,7 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         socket.disconnect();
     }
 
-//for testing, we're just going to send data to the client every second
+//for testing, we're going to send data to the client every second
 setInterval( function() {
   // getHistory(3);
   io.of("/webpage").emit("distance", {dist: 5, prev: 1, angle: 45});
