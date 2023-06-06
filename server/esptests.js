@@ -190,17 +190,17 @@ db.query(sql, (err, result) => {
   console.log(result);
 });
 
-var server = http.createServer(function(request, response) {
+var server2 = http.createServer(function(request, response) {
   console.log((new Date()) + ' Received request for ' + request.url);
   response.writeHead(404);
   response.end();
 });
-server.listen(5000, function() {
+server2.listen(5000, function() {
   console.log((new Date()) + ' Server is listening on port 5000');
 });
 
 wsServer = new WebSocketServer({
-  httpServer: server,
+  httpServer: server2,
   // You should not use autoAcceptConnections for production
   // applications, as it defeats all standard cross-origin protection
   // facilities built into the protocol and the browser.  You should
