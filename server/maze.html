@@ -28,18 +28,29 @@ socket.on("connection", (data) => {
   console.log(data);
 });
 
+let startx;
+let starty;
+
 //listens for node data from the server
 socket.on('distance', function(data){
-  distance = data.dist
-  previous = data.prev
-  console.log(distance);
-  console.log(previous);
-  const canvas = document.querySelector('#canvas');
-  if (canvas.getContext) {
-    const ctx = canvas.getContext('2d');
-    //need to calculate end position here and send to function
-    //also need to remember the end position of previous line and use that for the start of the next line
-    drawLine(ctx, [100, distance*25], [200, 600], 'green', 5);
+  if((startx == null) && (starty == null)){
+    startx = data.x
+    starty = data.y
+  }
+  else{
+    endx = data.x
+    endy = data.y
+    console.log(startx);
+    console.log(starty);
+    const canvas = document.querySelector('#canvas');
+    if (canvas.getContext) {
+      const ctx = canvas.getContext('2d');
+      //need to calculate end position here and send to function
+      //also need to remember the end position of previous line and use that for the start of the next line
+      drawLine(ctx, [startx, starty], [endx, endy], 'green', 5);
+    }
+    startx = endx
+    starty = endy
   }
 });
 

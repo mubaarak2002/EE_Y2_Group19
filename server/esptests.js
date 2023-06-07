@@ -11,9 +11,9 @@ var db = mysql.createConnection({
     database: "mydb"
   });
 
-let distance;
-let previous;
 let coordinates;
+let x;
+let y;
 
 db.connect(function(err) {
     if (err) throw err;
@@ -71,9 +71,9 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
   //for testing, we're going to send data to the client every second
   setInterval( function() {
     // getHistory(3);
-    socket.emit("distance", {dist: 5, prev: 1, angle: 45});
-    socket.emit("distance", {dist: 10, prev: 2, angle: 90});
-    socket.emit("distance", {dist: coordinates, prev: 2, angle: 90});
+    socket.emit("distance", {x: 200, y: 200});
+    socket.emit("distance", {x: 400, y: 200});
+    socket.emit("distance", {x: 200, y: 500});
   }, 1000);
 
   socket.on("test", function (){
@@ -233,6 +233,8 @@ wsServer.on('request', function(request) {
           console.log('Received Message: ' + message.utf8Data);
           coordinates = message.utf8Data;
           var string = coordinates.split(" ");
+          x = string[0];
+          y = string[1];
           console.log(string[0]);
           console.log(string[1]);
           //connection.sendUTF(message.utf8Data); this resend the reseived message, instead of it i will send a custom message. hello from nodejs
