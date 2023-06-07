@@ -2,6 +2,7 @@ const http = require('http');
 const express = require("express");
 const app = express();
 const mysql = require("mysql");
+const WebSocketServer = require('websocket').server;
 
 var db = mysql.createConnection({
     host: "localhost",
@@ -12,6 +13,7 @@ var db = mysql.createConnection({
 
 let distance;
 let previous;
+let coordinates;
 
 db.connect(function(err) {
     if (err) throw err;
@@ -67,11 +69,12 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     }
 
   //for testing, we're going to send data to the client every second
-  // setInterval( function() {
-  //   // getHistory(3);
-  //   socket.emit("distance", {dist: 5, prev: 1, angle: 45});
-  //   socket.emit("distance", {dist: 10, prev: 2, angle: 90});
-  // }, 1000);
+  setInterval( function() {
+    // getHistory(3);
+    socket.emit("distance", {dist: 5, prev: 1, angle: 45});
+    socket.emit("distance", {dist: 10, prev: 2, angle: 90});
+    socket.emit("distance", {dist: coordinates, prev: 2, angle: 90});
+  }, 1000);
 
   socket.on("test", function (){
     console.log("test")
@@ -187,4 +190,62 @@ var sql = "SELECT * FROM dijkstra";
 db.query(sql, (err, result) => {
   if(err) throw err;
   console.log(result);
+});
+
+var server2 = http.createServer(function(request, response) {
+  console.log((new Date()) + ' Received request for ' + request.url);
+  response.writeHead(404);
+  response.end();
+});
+server2.listen(5000, function() {
+  console.log((new Date()) + ' Server is listening on port 5000');
+});
+
+wsServer = new WebSocketServer({
+  httpServer: server2,
+  // You should not use autoAcceptConnections for production
+  // applications, as it defeats all standard cross-origin protection
+  // facilities built into the protocol and the browser.  You should
+  // *always* verify the connection's origin and decide whether or not
+  // to accept it.
+  autoAcceptConnections: false
+});
+
+function originIsAllowed(origin) {
+// put logic here to detect whether the specified origin is allowed.
+return true;
+}
+
+wsServer.on('request', function(request) {
+  console.log(request)
+  if (!originIsAllowed(request.origin)) {
+    // Make sure we only accept requests from an allowed origin
+    request.reject();
+    console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
+    return;
+  }
+  
+  var connection = request.accept(null, request.origin)
+  console.log((new Date()) + ' Connection accepted.');
+
+  connection.on('message', function(message) {
+      if (message.type === 'utf8') {
+          console.log('Received Message: ' + message.utf8Data);
+          coordinates = message.utf8Data;
+          var string = coordinates.split(" ");
+          console.log(string[0]);
+          console.log(string[1]);
+          //connection.sendUTF(message.utf8Data); this resend the reseived message, instead of it i will send a custom message. hello from nodejs
+          connection.sendUTF("Hello from node.js");
+      }
+
+      else if (message.type === 'binary') {
+          console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
+          connection.sendBytes(message.binaryData);
+      }
+  });
+
+  connection.on('close', function(reasonCode, description) {
+      console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
+  });
 });

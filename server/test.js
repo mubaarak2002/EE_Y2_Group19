@@ -1,66 +1,58 @@
-const http = require('http');
-const express = require("express");
-const app = express();
-const mysql = require("mysql");
+//npm install websocket
+var WebSocketServer = require('websocket').server;
+var http = require('http');
 
-var db = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "password",
-    database: "mydb"
-  });
+var server = http.createServer(function(request, response) {
+    console.log((new Date()) + ' Received request for ' + request.url);
+    response.writeHead(404);
+    response.end();
+});
+server.listen(5000, function() {
+    console.log((new Date()) + ' Server is listening on port 5000');
+});
 
-db.connect(function(err) {
-    if (err) throw err;
-    console.log("Connected!");
-    });
+wsServer = new WebSocketServer({
+    httpServer: server,
+    // You should not use autoAcceptConnections for production
+    // applications, as it defeats all standard cross-origin protection
+    // facilities built into the protocol and the browser.  You should
+    // *always* verify the connection's origin and decide whether or not
+    // to accept it.
+    autoAcceptConnections: false
+});
 
-function getHistory(vertex) {
-    // console.log("1: ", player1, " ", player2);
-
-    //query database for match history of players
-    //make sure to rearrange to player1, player2 - should not return from here alphabetically
-
-    //format data as a json object
-    //data = {"History": history} where history is a string of form 1 - 0
-    //query the rivalries table
-    //send rivalry data to socket
-    let distance;
-    let previous;
-    let data;
-
-    function get_info(vertex, callback) {
-        // console.log("2: ", player1, " ", player2);
-        sql = "SELECT dist_from_start, previous_vertex FROM dijkstra WHERE vertex = '" + vertex + "';";
-        // console.log(sql);
-        db.query(sql, function(err, results){
-            if (err){ 
-            throw err;
-            }
-            // console.log(results);
-            results.forEach((row) => {
-                distance = row.dist_from_start;
-                previous = row.previous_vertex;
-
-                // console.log("AAAAAAAA  ", P1wins, " ", P2wins);
-            });
-            return callback(results.dist_from_start);
-        });
-    }
-    
-    
-    get_info(vertex, function(result){
-        // console.log("3: ", player1, " ", player2);
-        console.log(distance);
-        console.log(previous);
-        // clientIDs.forEach(clientID => {
-        //     io.of("/client").to(clientID).emit("clientData", data);
-        // });
-        // if (gameSend) {
-        //     io.of("/webpage").to(webId).emit("history", data);
-        // }
-    });
-    return data;
+function originIsAllowed(origin) {
+  // put logic here to detect whether the specified origin is allowed.
+  return true;
 }
 
-getHistory(3);
+wsServer.on('request', function(request) {
+    console.log(request)
+    if (!originIsAllowed(request.origin)) {
+      // Make sure we only accept requests from an allowed origin
+      request.reject();
+      console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
+      return;
+    }
+    
+    var connection = request.accept(null, request.origin)
+    console.log((new Date()) + ' Connection accepted.');
+
+    connection.on('message', function(message) {
+        if (message.type === 'utf8') {
+            console.log('Received Message: ' + message.utf8Data);
+            //connection.sendUTF(message.utf8Data); this resend the reseived message, instead of it i will send a custom message. hello from nodejs
+            connection.sendUTF("Hello from node.js");
+        }
+        else if (message.type === 'binary') {
+            console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
+            connection.sendBytes(message.binaryData);
+        }
+    });
+
+
+
+    connection.on('close', function(reasonCode, description) {
+        console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
+    });
+});
