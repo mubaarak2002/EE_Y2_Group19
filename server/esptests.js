@@ -71,9 +71,7 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
   //for testing, we're going to send data to the client every second
   setInterval( function() {
     // getHistory(3);
-    socket.emit("distance", {x: 200, y: 200});
-    socket.emit("distance", {x: 400, y: 200});
-    socket.emit("distance", {x: 200, y: 500});
+    socket.emit("distance", {x: x, y: y});
   }, 1000);
 
   socket.on("test", function (){
