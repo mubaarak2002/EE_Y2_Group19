@@ -72,6 +72,7 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
   setInterval( function() {
     // getHistory(3);
     socket.emit("distance", {x: x, y: y});
+    console.log("can you see me?" + x, + y);
   }, 1000);
 
   socket.on("test", function (){
