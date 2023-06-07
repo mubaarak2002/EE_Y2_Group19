@@ -41,6 +41,9 @@ def photo_process(range={"lower": np.array([0, 0, 0]), "upper": np.array([179, 2
         PlotTwo(img, Mask(img, range["lower"], range["upper"]))
     elif mode == "TripleMask":
         TripleMask(img, blueMask, greenMask, redMask)
+    elif mode == "JustMask":
+        #return img
+        return JustMask(img, range["lower"], range["upper"])
 
 
 
@@ -109,6 +112,13 @@ def Mask(image, lowerRange, upperRange):
     #PlotTwo(image, result)
     return result
 
+def JustMask(image, lowerRange, upperRange):
+    frame = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    
+    mask = cv2.inRange(frame, lowerRange, upperRange)
+
+    return mask
+
 def FullSliders(Source, range={"lower": np.array([0, 0, 0]), "upper": np.array([255, 255, 255])}):
 
     ranges = {"lower": npArrayToNormal(range["lower"]), "upper": npArrayToNormal(range["upper"])}
@@ -175,7 +185,6 @@ def npArrayToNormal(npArray):
     return npArray.tolist()
 
 
-
 def TripleMask(img, blueMask, greenMask, redMask):
     f, axarr = plt.subplots(2,2)
     axarr[0,0].imshow(img)
@@ -193,7 +202,23 @@ redRanges = {"lower": np.array([100, 150, 75]), "upper": np.array([150, 255, 176
 greenRanges = {"lower": np.array([55, 150, 116]), "upper": np.array([110, 255, 200])}
 totalRanges = {"lower": np.array([0, 0, 0]), "upper": np.array([179, 255, 255])}
 
-
-
-#photo_process(range=totalRanges, mode="FullSliders")
+#photo_process(photo="./assets/Lamp_Images/Big_Blue.jpeg", range=totalRanges, mode="FullSliders")
 photo_process(range=totalRanges, mode="TripleMask", blueMask=blueRanges, greenMask=greenRanges, redMask=redRanges)
+
+mask = photo_process(range=redRanges, mode="JustMask", blueMask=blueRanges, greenMask=greenRanges, redMask=redRanges)
+
+temp = npArrayToNormal(mask)
+
+
+current_x = []
+current_y = []
+#i is y, j is x
+for i in range(len(temp)):
+    for j in range(len(temp[0])):
+        if(temp[i][j] != 0):
+           current_y.append(i)
+           current_x.append(j)
+
+theMean = [np.array(current_x).mean(), np.array(current_y).mean()]
+
+print(str(theMean))
