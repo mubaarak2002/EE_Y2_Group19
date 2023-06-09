@@ -52,12 +52,10 @@ var server2 = http.createServer(function(request, response) {
                 var pair = comma[i].split(" ");
                 var x = pair[0];
                 var y = pair[1];
-                //maze[x][y] = 1;
-                console.log(coordinates);
-                console.log("x = " + x + " y = " + y);
+                maze[x][y] = 1;
             }
-            //maze[0][0] = 0;
-            //console.table(maze);
+            maze[0][0] = 0;
+            console.table(maze);
             //connection.sendUTF(message.utf8Data); this resend the reseived message, instead of it i will send a custom message. hello from nodejs
             connection.sendUTF("Hello from node.js");
         }
