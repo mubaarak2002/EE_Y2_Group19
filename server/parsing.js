@@ -5,6 +5,7 @@ const mysql = require("mysql");
 const WebSocketServer = require('websocket').server;
 
 let coordinates;
+let maze = Array.from({ length: 10 }).map(() => Array.from({ length: 10 }).fill(0));
 
 var server2 = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
@@ -46,8 +47,16 @@ var server2 = http.createServer(function(request, response) {
         if (message.type === 'utf8') {
             console.log('Received Message: ' + message.utf8Data);
             coordinates = message.utf8Data;
-            console.log(string[0]);
-            console.log(string[1]);
+            var comma = coordinates.split(",");
+            for(let i = 0; i < comma.length; i++){
+                var pair = comma[i].split(" ");
+                var x = pair[0];
+                var y = pair[1];
+                maze[x][y] = 1;
+                //console.log("x = " + x + " y = " + y);
+            }
+            maze[0][0] = 0;
+            console.table(maze);
             //connection.sendUTF(message.utf8Data); this resend the reseived message, instead of it i will send a custom message. hello from nodejs
             connection.sendUTF("Hello from node.js");
         }
@@ -64,7 +73,6 @@ var server2 = http.createServer(function(request, response) {
   });
 
 var comma = coordinates.split(",");
-maze = Array.from({ length: 10 }).map(() => Array.from({ length: 10 }).fill(0));
 for(let i = 0; i < comma.length; i++){
     var pair = comma[i].split(" ");
     var x = pair[0];
