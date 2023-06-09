@@ -71,14 +71,3 @@ var server2 = http.createServer(function(request, response) {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
     });
   });
-
-var comma = coordinates.split(",");
-for(let i = 0; i < comma.length; i++){
-    var pair = comma[i].split(" ");
-    var x = pair[0];
-    var y = pair[1];
-    maze[x][y] = 1;
-    //console.log("x = " + x + " y = " + y);
-}
-maze[0][0] = 0;
-console.table(maze);
