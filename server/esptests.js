@@ -14,6 +14,8 @@ var db = mysql.createConnection({
 let coordinates;
 let x;
 let y;
+let rovx;
+let rovy;
 let maze = Array.from({ length: 10 }).map(() => Array.from({ length: 10 }).fill(0));
 
 db.connect(function(err) {
@@ -219,6 +221,10 @@ wsServer.on('request', function(request) {
               y = pair[1];
               maze[x][y] = 1;
           }
+          pair = comma[9].split(" ");
+          rovx = pair[0];
+          rovy = pair[1];
+          console.log("rover: " + rovx + ", " + rovy);
           maze[0][0] = 0;
           //console.table(maze);
           //connection.sendUTF(message.utf8Data); this resend the reseived message, instead of it i will send a custom message. hello from nodejs
