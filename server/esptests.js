@@ -67,6 +67,8 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
   //send data to the client every second
   setInterval( function() {
     socket.emit("distance", {x: x, y: y});
+    x = 500;
+    y = 500;
   }, 1000);
 
 	socket.on("disconnect", function () {
