@@ -213,7 +213,7 @@ wsServer.on('request', function(request) {
           console.log('Received Message: ' + message.utf8Data);
           coordinates = message.utf8Data;
           var comma = coordinates.split(",");
-          for(let i = 0; i < comma.length; i++){
+          for(let i = 0; i < 8; i++){
               var pair = comma[i].split(" ");
               x = pair[0];
               y = pair[1];
