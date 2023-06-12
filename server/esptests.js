@@ -218,14 +218,9 @@ wsServer.on('request', function(request) {
               maze[x][y] = 1;
           }
           maze[0][0] = 0;
-          console.table(maze);
+          //console.table(maze);
           //connection.sendUTF(message.utf8Data); this resend the reseived message, instead of it i will send a custom message. hello from nodejs
           connection.sendUTF("Hello from node.js");
-      }
-
-      else if (message.type === 'binary') {
-          console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
-          connection.sendBytes(message.binaryData);
       }
   });
 
