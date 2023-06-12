@@ -73,9 +73,7 @@ function dfs(maze, adjacency, prev_vertex, vertex_positions) {
         turn_back();
         traverse_forward();
         state = "continue";
-        while (state == "continue") {
-            state, maze = traverse(maze);
-        }
+        state, maze = traverse(maze);
         return adjacency, vertex_positions;
     }
     allign_left_most_exit(maze);
@@ -89,19 +87,15 @@ function dfs(maze, adjacency, prev_vertex, vertex_positions) {
         }
         // traverse forward until we have reached a junction
         traverse_forward();
-        let state = "continue";
-        while (state == "continue") {
-            state, maze = traverse(maze);
-        }
+        state = "continue";
+        state, maze = traverse(maze);
         let cur_pos = get_current_position();
         // if the new junction has already been visited turn back to original junction
         if (check_visited(vertex_positions, cur_pos)) {
             turn_back();
             traverse_forward();
             state = "continue";
-            while (state == "continue") {
-                state, maze = traverse(maze);
-            }
+            state, maze = traverse(maze);
         }
         // else, do a dfs with this junction
         else {
@@ -112,9 +106,7 @@ function dfs(maze, adjacency, prev_vertex, vertex_positions) {
     allign_abs_angle(abs_angle);
     allign_left_exit(maze);
     traverse_forward();
-    state = "continue"
-    while (state == "continue") {
-        state, maze = traverse(maze);
-    }
+    let state = "continue";
+    state, maze = traverse(maze);
     return adjacency, vertex_positions;
 }
