@@ -49,15 +49,10 @@ server.listen(3000, () => {
   console.log("Application started and Listening on port 3000");
 });
 
-// server.listen(8080, () => {
-//   console.log("Listening on port 8080 for esp32");
-// });
-
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/maze.html");
 });
 
-let clientIDs = [];
 let webId = null;
 
 io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
@@ -69,16 +64,10 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         socket.disconnect();
     }
 
-  //for testing, we're going to send data to the client every second
+  //send data to the client every second
   setInterval( function() {
-    // getHistory(3);
     socket.emit("distance", {x: x, y: y});
-    //console.log("can you see me?" + x, + y);
   }, 1000);
-
-  socket.on("test", function (){
-    console.log("test")
-  });
 
 	socket.on("disconnect", function () {
 		console.log(socket.request.connection.remoteAddress + " has disconnected");
@@ -211,19 +200,8 @@ wsServer = new WebSocketServer({
   autoAcceptConnections: false
 });
 
-function originIsAllowed(origin) {
-// put logic here to detect whether the specified origin is allowed.
-return true;
-}
-
 wsServer.on('request', function(request) {
   console.log(request)
-  if (!originIsAllowed(request.origin)) {
-    // Make sure we only accept requests from an allowed origin
-    request.reject();
-    console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
-    return;
-  }
   
   var connection = request.accept(null, request.origin)
   console.log((new Date()) + ' Connection accepted.');
