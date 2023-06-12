@@ -14,6 +14,7 @@ var db = mysql.createConnection({
 let coordinates;
 let x;
 let y;
+let maze = Array.from({ length: 10 }).map(() => Array.from({ length: 10 }).fill(0));
 
 db.connect(function(err) {
     if (err) throw err;
@@ -72,7 +73,7 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
   setInterval( function() {
     // getHistory(3);
     socket.emit("distance", {x: x, y: y});
-    console.log("can you see me?" + x, + y);
+    //console.log("can you see me?" + x, + y);
   }, 1000);
 
   socket.on("test", function (){
@@ -231,11 +232,15 @@ wsServer.on('request', function(request) {
       if (message.type === 'utf8') {
           console.log('Received Message: ' + message.utf8Data);
           coordinates = message.utf8Data;
-          var string = coordinates.split(" ");
-          x = string[0];
-          y = string[1];
-          console.log(string[0]);
-          console.log(string[1]);
+          var comma = coordinates.split(",");
+          for(let i = 0; i < comma.length; i++){
+              var pair = comma[i].split(" ");
+              var x = pair[0];
+              var y = pair[1];
+              maze[x][y] = 1;
+          }
+          maze[0][0] = 0;
+          console.table(maze);
           //connection.sendUTF(message.utf8Data); this resend the reseived message, instead of it i will send a custom message. hello from nodejs
           connection.sendUTF("Hello from node.js");
       }
