@@ -61,6 +61,10 @@ function dfs(maze, adjacency, prev_vertex, vertex_positions) {
 
     // this junction is unvisted, add info to adjacency and vertex_positions
     let cur_vertex = adjacency.length()
+    let cur_pos = get_current_position();
+    adjacency[prev_vertex].push(cur_vertex);
+    adjacency.push([prev_vertex]);
+    vertex_positions.push(cur_pos);
 
     // get info about next paths to explore
     let exits = get_exits(maze);
