@@ -215,8 +215,8 @@ wsServer.on('request', function(request) {
           var comma = coordinates.split(",");
           for(let i = 0; i < comma.length; i++){
               var pair = comma[i].split(" ");
-              var x = pair[0];
-              var y = pair[1];
+              x = pair[0];
+              y = pair[1];
               maze[x][y] = 1;
           }
           maze[0][0] = 0;
