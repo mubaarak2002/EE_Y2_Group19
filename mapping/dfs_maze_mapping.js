@@ -74,7 +74,7 @@ function dfs(maze, adjacency, prev_vertex, vertex_positions) {
         traverse_forward();
         state = "continue";
         while (state == "continue") {
-            state, maze = traverse();
+            state, maze = traverse(maze);
         }
         return adjacency, vertex_positions;
     }
