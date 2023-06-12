@@ -221,7 +221,7 @@ wsServer.on('request', function(request) {
               y = pair[1];
               maze[x][y] = 1;
           }
-          pair = comma[9].split(" ");
+          pair = comma[8].split(" ");
           rovx = pair[0];
           rovy = pair[1];
           console.log("rover: " + rovx + ", " + rovy);
