@@ -20,7 +20,7 @@ void map_initial(char map[5000][5000]){
         {
             map[i][j]=0xff;
         }
-    }
+    } 
 }
 char abs_to_rel(char absN, char absT){
     //abdN:Current absolute direction
