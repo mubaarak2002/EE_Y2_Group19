@@ -4,10 +4,10 @@
 using namespace std;
 
 /**
- * 7 0 1 
- * 6   2
- * 5 4 3
- * the four direction is define as 0 1 2 3 4 5 6 7
+ *  0
+ * 3  1
+ *  2
+ * the four direction is define as 0 3 1 2
 */
 /**
  * Converting absolute directions to relative directions
@@ -26,8 +26,8 @@ char abs_to_rel(char absN, char absT){
     //abdN:Current absolute direction
     //adbT:Which absolute direction to expect to switch to
     char rel;  
-    rel=(absT-absN)%8;
-    if(rel>127) rel=rel+8;
+    rel=(absT-absN)%4;
+    if(rel>127) rel=rel+4;
     return rel;
     //now we can return to the relative direction
 }
@@ -44,14 +44,14 @@ void collect_info(char maze[5000][5000],xyTypeDef now, char absN){
     if(maze[now.x][now.y]==0){//which means that the cordinate now has not been written before, so writting it in
         char wall=0xf0;
         char k=0;
-        for(int i=0;i<8;i++)
+        for(int i=0;i<4;i++)
         {
             //using loop to determine the four absolute directions
             //should be like:k should be the informatio from the light and transform it to relative direction;
             //the value of wall should be the value after a bitwise OR operation between val_wall and (k<<i), and assign the result back to val_wall.
         }
-        maze[now.y][now.x] &= wall;  // write the information of wall in high 8-bits
-        maze[now.y][now.x] &= ((absN<<8)|0x0f);  // write the future direction in low 8-bits
+        maze[now.y][now.x] &= wall;  // write the information of wall in high 4-bits
+        maze[now.y][now.x] &= ((absN<<4)|0x0f);  // write the future direction in low 4-bits
     }
 }
 /**
@@ -67,27 +67,23 @@ void collect_info(char maze[5000][5000],xyTypeDef now, char absN){
         }
         char is_new(char maze[5000][5000], xyTypeDef now, char absN){ // Determine if this direction leads to a new cell
             if(absD==0) return (maze[now.y-1][now.x]>>4)==0x0f;
-            if(absD==2) return (maze[now.y][now.x+1]>>4)==0x0f;
-            if(absD==4) return (maze[now.y+1][now.x]>>4)==0x0f;
-            if(absD==6) return (maze[now.y][now.x-1]>>4)==0x0f;
-            if(absD==1) return (maze[now.y-1][now.x+1]>>4)==0x0f;
-            if(absD==3) return (maze[now.y+1][now.x+1]>>4)==0x0f;
-            if(absD==5) return (maze[now.y+1][now.x-1]>>4)==0x0f; 
-            if(absD==7) return (maze[now.y-1][now.x-1]>>4)==0x0f; 
+            if(absD==1) return (maze[now.y][now.x+1]>>4)==0x0f;
+            if(absD==2) return (maze[now.y+1][now.x]>>4)==0x0f;
+            if(absD==3) return (maze[now.y][now.x-1]>>4)==0x0f;
             return 0;
         }
         char search_dir(char maze[5000][5000], xyTypeDef now, char flag){ // Select direction
             char i;
-            char pre = maze[now.y][now.x] >> 8;
+            char pre = maze[now.y][now.x] >> 4;
             char back;
             if(!flag){ // If not sprinting, scan the four directions for walkability
-                for(i=0; i<8; i++){
+                for(i=0; i<4; i++){
                 if(is_path(maze, xyTypeDef now, i) && is_new(maze, xyTypeDef now, i)){ // Check if there is a wall and if it has been visited
                     return i;
                 }
             }
         }
-        // If sprinting or all eight directions are not walkable, directly read the upper 8 bits for sprinting guidance or backtracking
+        // If sprinting or all four directions are not walkable, directly read the upper 4 bits for sprinting guidance or backtracking
         if(pre<=1) back = pre+2;
         if(pre>=2) back = pre-2;
         return back;
@@ -99,13 +95,9 @@ void collect_info(char maze[5000][5000],xyTypeDef now, char absN){
         char relD = abs_to_rel(*absN, absT);
         // Update the current coordinates and absolute direction
         if(absT == 0) (now->y)--;
-        if(absT == 2) (now->x)++;
-        if(absT == 4) (now->y)++;
-        if(absT == 6) (now->x)--;
-        if(absT == 1) {(now->y)--; (now->x)++;}
-        if(absT == 3) {(now->x)++; (now->y)++;}
-        if(absT == 5) {(now->y)++; (now->x)--;}
-        if(absT == 7) {(now->x)--; (now->y)--;}
+        if(absT == 1) (now->x)++;
+        if(absT == 2) (now->y)++;
+        if(absT == 3) (now->x)--;
         *absD = absD_t;
         // Execute the actions
         //here should be a line that let the bug go the direction of relD by 1 step
