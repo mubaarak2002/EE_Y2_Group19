@@ -28,16 +28,12 @@ bit bfs(char maze[5000][5000], xyTypeDef beg, xyTypeDef end) { // Breadth-First 
         for (j = 0; j < queue_len; j++) {  // (Since an array is used to simulate the queue, all elements need to be manually shifted forward)
             queue_xy[j] = queue_xy[j + 1];
         }
-        for (i = 0; i < 8; i++) {  // Check four directions
+        for (i = 0; i < 4; i++) {  // Check four directions
             temp = queue_head;
             if (i == 0)  temp.y = queue_head.y - 1;
-            if (i == 2)  temp.x = queue_head.x + 1;
-            if (i == 4)  temp.y = queue_head.y + 1;
-            if (i == 6)  temp.x = queue_head.x - 1;
-            if (i == 1)  {temp.y = queue_head.y - 1; temp.x=queue_head.x+1;}
-            if (i == 3)  {temp.x = queue_head.x + 1; temp.y=queue_head.y+1;}
-            if (i == 5)  {temp.y = queue_head.y + 1; temp.x=queue_head.x-1;}
-            if (i == 7)  {temp.x = queue_head.x - 1; temp.x=queue_head.y-1;}
+            if (i == 1)  temp.x = queue_head.x + 1;
+            if (i == 2)  temp.y = queue_head.y + 1;
+            if (i == 3)  temp.x = queue_head.x - 1;
             if (temp.x > 127 || temp.y > 127)  continue;
             if (is_path(maze, queue_head, i) && height[temp.y][temp.x] == 255) {  // If the coordinate is connected and accessed for the first time
                 height[temp.y][temp.x] = height[queue_head.y][queue_head.x] + 1;  // Increase the altitude of the coordinate by 1 in the altitude table
@@ -50,20 +46,16 @@ bit bfs(char maze[5000][5000], xyTypeDef beg, xyTypeDef end) { // Breadth-First 
     now.x = end.x;
     now.y = end.y;
     while (!(now.x == 0 && now.y == 0)) {  // If not yet at the starting point
-        for (i = 0; i < 8; i++) {  // Scan four directions
+        for (i = 0; i < 4; i++) {  // Scan four directions
             temp = now;
-            if (i == 0)  temp.y = queue_head.y - 1;
-            if (i == 2)  temp.x = queue_head.x + 1;
-            if (i == 4)  temp.y = queue_head.y + 1;
-            if (i == 6)  temp.x = queue_head.x - 1;
-            if (i == 1)  {temp.y = queue_head.y - 1; temp.x=queue_head.x+1;}
-            if (i == 3)  {temp.x = queue_head.x + 1; temp.y=queue_head.y+1;}
-            if (i == 5)  {temp.y = queue_head.y + 1; temp.x=queue_head.x-1;}
-            if (i == 7)  {temp.x = queue_head.x - 1; temp.x=queue_head.y-1;}
+            if (i == 0)  temp.y = now.y - 1;
+            if (i == 1)  temp.x = now.x + 1;
+            if (i == 2)  temp.y = now.y + 1;
+            if (i == 3)  temp.x = now.x - 1;
             if (temp.x >127 || temp.y>127) continue;
             if(is_path(maze, now, i) && (height[temp.y][temp.x]==height[now.y][now.x]-1)){  // If the coordinate is connected and the height is decreasing
                 maze[temp.y][temp.x] |= 0xf0; // Initialize the high four bits of the maze array at that coordinate
-                maze[temp.y][temp.x] &= ((i<<8)|0x0f);  // Write this direction to the high four bits
+                maze[temp.y][temp.x] &= ((i<<4)|0x0f);  // Write this direction to the high four bits
                 now = temp;  // switch nodes
                 break;
             }
