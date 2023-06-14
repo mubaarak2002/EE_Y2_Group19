@@ -72,6 +72,10 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     socket.emit("distance", {x: 200, y: 200});
     socket.emit("distance", {x: 400, y: 200});
     socket.emit("distance", {x: 200, y: 500});
+    var points = [[200, 200], [400, 200], [500, 500]];
+    socket.emit("shortest", points);
+    points = [[600, 200], [200, 100], [300, 500]];
+    socket.emit("shortest", points);
     
   }, 1000);
 

@@ -3,11 +3,11 @@
 #include <WebSocketClient.h>
 
 // wifi connection
-const char* ssid = "AndroidAP";
-const char* password = "mubs2002";
+const char* ssid = "";
+const char* password = "";
 char path[] = "/";
 // aws server public ip (port is always 5000)
-char host[] = "3.82.215.163:5000";
+char host[] = "54.84.92.150:5000";
   
 WebSocketClient webSocketClient;
 
@@ -41,7 +41,7 @@ void setup() {
   
 
   // Connect to the websocket server
-  if (client.connect("3.82.215.163", 5000)) {
+  if (client.connect("54.84.92.150", 5000)) {
     Serial.println("Connected");
   } else {
     Serial.println("Connection failed.");
@@ -63,8 +63,10 @@ void setup() {
   }
 
 }
-//this function creates a string from a 2d array, in the correct format to be able to send to the server
-String ToServer(int coordinates[ 9 ][ 2 ]){
+
+// this function puts the coordinates in the correct format to send to the server
+// 2 variables - 2D array of wall coordinates - 1D array of rover coordinates
+String ToServer(int coordinates[ 9 ][ 2 ], int rovcoordinates[ 2 ]){
   String data;
   String rcv;
   for( int i = 0; i < 8; i++){
@@ -73,8 +75,11 @@ String ToServer(int coordinates[ 9 ][ 2 ]){
     data += coordinates[i][1];
     data += ",";
   }
-  int lastIndex = data.length() - 1;
-  data.remove(lastIndex);
+    data += rovcoordinates[0];
+    data += " ";
+    data += rovcoordinates[1];
+  //int lastIndex = data.length() - 1;
+  //data.remove(lastIndex);
   return data;
   
 }
@@ -103,8 +108,10 @@ void loop() {
       { 9, 1 },
     };
 
+    int rovcoordinates[ 2 ] = { 100, 200 };
+
     Serial.print("in");
-    data = ToServer(coordinates);
+    data = ToServer(coordinates, rovcoordinates);
     Serial.print("\n");
     Serial.print("out");
     Serial.print("\n");
