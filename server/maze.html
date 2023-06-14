@@ -20,6 +20,17 @@ function drawLine(ctx, begin, end, stroke = 'black', width = 1) {
     ctx.stroke();
 }
 
+function redomaze(routing){
+  for(let i = 0; i < routing.length - 1; i++){
+    if (canvas.getContext) {
+      maze = canvas.getContext('2d');
+      //need to calculate end position here and send to function
+      //also need to remember the end position of previous line and use that for the start of the next line
+      drawLine(maze, [routing[i][0], routing[i][1]], [routing[i+1][0], routing[1+i][1]], 'green', 5);
+    }
+  }
+};
+
 // open socket
 const socket = io("/webpage");
 
@@ -30,28 +41,41 @@ socket.on("connection", (data) => {
 
 let startx;
 let starty;
+let shortstartx;
+let shortstarty;
+var sflag = 0;
+let routing = [];
 
 //listens for node data from the server
 socket.on('distance', function(data){
-  if((startx == null) && (starty == null)){
-    startx = data.x
-    starty = data.y
+  routing.push([data.x, data.y]);
+  if(routing.length > 1){
+    redomaze(routing);
   }
-  else{
-    endx = data.x
-    endy = data.y
-    console.log(startx);
-    console.log(starty);
-    const canvas = document.querySelector('#canvas');
+});
+
+
+socket.on('shortest', function(data){
+  //canvas2 = document.querySelector('#canvas');
+  if(sflag == 1){
+    spath.clearRect(0, 0, 600, 600);
+  };
+  redomaze(routing);
+  for(let i = 0; i < data.length-1; i++){
+    shortstartx = data[0][0]
+    shortstarty = data[0][1]
+    shortendx = data[i+1][0]
+    shortendy = data[i+1][1]
     if (canvas.getContext) {
-      const ctx = canvas.getContext('2d');
+      spath = canvas.getContext('2d');
       //need to calculate end position here and send to function
       //also need to remember the end position of previous line and use that for the start of the next line
-      drawLine(ctx, [startx, starty], [endx, endy], 'green', 5);
+      drawLine(spath, [shortstartx, shortstarty], [shortendx, shortendy], 'red', 5);
     }
-    startx = endx
-    starty = endy
+    shortstartx = shortendx
+    shortstarty = shortendy
   }
+  sflag = 1;
 });
 
 </script>
