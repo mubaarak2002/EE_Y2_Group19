@@ -77,9 +77,6 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     socket.emit("distance", {x: 200, y: 500});
     points = [[600, 200], [200, 100], [300, 500]];
     socket.emit("shortest", points);
-    if(Valid){
-      connection.sendUTF("Hello from node.js");
-    };
   }, 1000);
 
 	socket.on("disconnect", function () {
@@ -218,6 +215,7 @@ wsServer.on('request', function(request) {
   
   var connection = request.accept(null, request.origin)
   console.log((new Date()) + ' Connection accepted.');
+  connection.sendUTF("Hello from node.js");
 
   connection.on('message', function(message) {
     Valid = true;
