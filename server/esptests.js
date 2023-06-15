@@ -76,7 +76,6 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     socket.emit("distance", {x: 200, y: 500});
     points = [[600, 200], [200, 100], [300, 500]];
     socket.emit("shortest", points);
-    connection.sendUTF("hi");
     
   }, 1000);
 
@@ -235,6 +234,7 @@ wsServer.on('request', function(request) {
           maze[0][0] = 0;
           //connection.sendUTF(message.utf8Data); this resend the reseived message, instead of it i will send a custom message. hello from nodejs
           //connection.sendUTF("Hello from node.js");
+          connection.sendUTF("hi");
       }
   });
 
