@@ -66,11 +66,16 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         socket.disconnect();
     }
 
-  //send data to the client every second
+  //for testing, we're going to send data to the client every second
   setInterval( function() {
-    socket.emit("distance", {x: x, y: y});
-    x = 500;
-    y = 500;
+    var points = [[200, 200], [400, 200], [500, 500]];
+    socket.emit("shortest", points);
+    socket.emit("distance", {x: 200, y: 200});
+    socket.emit("distance", {x: 400, y: 200});
+    socket.emit("distance", {x: 200, y: 500});
+    points = [[600, 200], [200, 100], [300, 500]];
+    socket.emit("shortest", points);
+    
   }, 1000);
 
 	socket.on("disconnect", function () {
@@ -226,9 +231,8 @@ wsServer.on('request', function(request) {
           rovy = pair[1];
           console.log("rover: " + rovx + ", " + rovy);
           maze[0][0] = 0;
-          //console.table(maze);
           //connection.sendUTF(message.utf8Data); this resend the reseived message, instead of it i will send a custom message. hello from nodejs
-          connection.sendUTF("Hello from node.js");
+          //connection.sendUTF("Hello from node.js");
       }
   });
 
