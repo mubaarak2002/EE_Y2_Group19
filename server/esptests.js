@@ -77,7 +77,7 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     socket.emit("distance", {x: 200, y: 500});
     points = [[600, 200], [200, 100], [300, 500]];
     socket.emit("shortest", points);
-    msg =+ 1; 
+    msg += 1; 
   }, 1000);
 
 	socket.on("disconnect", function () {
