@@ -18,6 +18,7 @@ let y;
 let rovx;
 let rovy;
 let maze = Array.from({ length: 10 }).map(() => Array.from({ length: 10 }).fill(0));
+let Valid = false;
 
 db.connect(function(err) {
     if (err) throw err;
@@ -76,7 +77,7 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     socket.emit("distance", {x: 200, y: 500});
     points = [[600, 200], [200, 100], [300, 500]];
     socket.emit("shortest", points);
-    if(connection){
+    if(Valid){
       connection.sendUTF("Hello from node.js");
     };
   }, 1000);
@@ -219,6 +220,7 @@ wsServer.on('request', function(request) {
   console.log((new Date()) + ' Connection accepted.');
 
   connection.on('message', function(message) {
+    Valid = true;
       if (message.type === 'utf8') {
           console.log('Received Message: ' + message.utf8Data);
           coordinates = message.utf8Data;
