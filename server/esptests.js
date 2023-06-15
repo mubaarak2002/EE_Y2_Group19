@@ -77,11 +77,6 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     socket.emit("distance", {x: 200, y: 500});
     points = [[600, 200], [200, 100], [300, 500]];
     socket.emit("shortest", points);
-    if(Valid){
-      connection.on('message', function(message) {
-        connection.sendUTF("Hello from node.js");
-      });
-    };
   }, 1000);
 
 	socket.on("disconnect", function () {
