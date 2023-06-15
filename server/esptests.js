@@ -79,8 +79,6 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     if(connection){
       connection.sendUTF("Hello from node.js");
     };
-      
-    }
   }, 1000);
 
 	socket.on("disconnect", function () {
