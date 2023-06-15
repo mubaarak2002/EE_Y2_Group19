@@ -233,8 +233,7 @@ wsServer.on('request', function(request) {
           console.log("rover: " + rovx + ", " + rovy);
           maze[0][0] = 0;
           //connection.sendUTF(message.utf8Data); this resend the reseived message, instead of it i will send a custom message. hello from nodejs
-          //connection.sendUTF("Hello from node.js");
-          connection.sendUTF("hi");
+          connection.sendUTF("Hello from node.js");
       }
   });
 
