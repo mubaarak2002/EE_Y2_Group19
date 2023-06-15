@@ -18,7 +18,7 @@ let y;
 let rovx;
 let rovy;
 let maze = Array.from({ length: 10 }).map(() => Array.from({ length: 10 }).fill(0));
-let Valid = false;
+let msg = 0;
 
 db.connect(function(err) {
     if (err) throw err;
@@ -77,6 +77,7 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     socket.emit("distance", {x: 200, y: 500});
     points = [[600, 200], [200, 100], [300, 500]];
     socket.emit("shortest", points);
+    msg =+ 1; 
   }, 1000);
 
 	socket.on("disconnect", function () {
@@ -212,7 +213,6 @@ wsServer = new WebSocketServer({
 
 wsServer.on('request', function(request) {
   console.log(request)
-  Valid = true;
   var connection = request.accept(null, request.origin)
   console.log((new Date()) + ' Connection accepted.');
 
@@ -233,7 +233,7 @@ wsServer.on('request', function(request) {
           console.log("rover: " + rovx + ", " + rovy);
           maze[0][0] = 0;
           //connection.sendUTF(message.utf8Data); this resend the reseived message, instead of it i will send a custom message. hello from nodejs
-          connection.sendUTF("Hello from node.js");
+          connection.sendUTF(msg.toString());
       }
   });
 
