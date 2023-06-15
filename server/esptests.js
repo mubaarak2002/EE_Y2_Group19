@@ -2,6 +2,7 @@ const http = require('http');
 const express = require("express");
 const app = express();
 const mysql = require("mysql");
+const { connection } = require('websocket');
 const WebSocketServer = require('websocket').server;
 
 var db = mysql.createConnection({
@@ -75,6 +76,7 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     socket.emit("distance", {x: 200, y: 500});
     points = [[600, 200], [200, 100], [300, 500]];
     socket.emit("shortest", points);
+    connection.sendUTF("hi");
     
   }, 1000);
 
