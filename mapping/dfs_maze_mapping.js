@@ -1,45 +1,24 @@
-function traverse_forward() {}
+import {
+    traverse_forward,
+    traverse_corridor,
+    get_current_state,
+    get_current_position,
+    turn_back,
+    get_exits,
+    allign_abs_angle,
+    allign_left_most_exit,
+    allign_left_exit,
+    allign_right_exit,
+    traverse
+} from '../navigation/autonomous_traversal.js';
 
-function traverse_corridor() {}
-
-function get_current_state(maze) {}
-
-function get_current_position() {}
-
-function turn_back(maze) {}
-
-function get_exits(maze) {}
-
-function allign_abs_angle(angle) {}
-
-function allign_left_most_exit(maze) {}
-
-function allign_left_exit(maze) {}
-
-function allign_right_exit(maze) {}
-
-function check_visited(vertex_positions, current_pos, tolerance = 3) {
+export function check_visited(vertex_positions, current_pos, tolerance = 3) {
     for (let vertex in vertex_positions) {
         if ((Math.abs(current_pos[0] - vertex[0]) <= tolerance) && (Math.abs(current_pos[1] - vertex[1]) <= tolerance)) {
             return 1;
         }
     }
     return 0;
-}
-
-function traverse(maze) {
-    // if back at start, end
-    // current_state is corridor/junction/dead end
-    let current_state;
-    current_state, maze = get_current_state(maze)
-    while (current_state == "corridor") {
-        traverse_corridor();
-        current_state, maze = get_current_state(maze);
-        return "continue", maze;
-    }
-    if (current_state == "junction") {
-        return "junction", maze;
-    }
 }
 
 // procedure DFS(G, v) is
@@ -51,14 +30,7 @@ function traverse(maze) {
 // if you can go left, go left
 // if you can't go left but can go straight
 
-function dfs(maze, adjacency, prev_vertex, vertex_positions) {
-    //let arr = [prev_vertex]
-    //adjacency.push(arr);
-    //let state = "continue"
-    //while (state == "continue") {
-    //    state, maze, adjacency, vertex_positions = traverse(maze, adjacency, vertex_positions, prev_vertex);
-    //}
-
+export function dfs(maze, adjacency, prev_vertex, vertex_positions) {
     // this junction is unvisted, add info to adjacency and vertex_positions
     let cur_vertex = adjacency.length()
     let cur_pos = get_current_position();
@@ -91,6 +63,8 @@ function dfs(maze, adjacency, prev_vertex, vertex_positions) {
         state, maze = traverse(maze);
         let cur_pos = get_current_position();
         // if the new junction has already been visited turn back to original junction
+        //      no need to update the adjacency list since if it has been visited before
+        //      then it will necessarily have an entry in the adjacency list
         if (check_visited(vertex_positions, cur_pos)) {
             turn_back();
             traverse_forward();
