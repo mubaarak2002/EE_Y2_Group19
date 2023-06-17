@@ -1,67 +1,86 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
 
 using namespace std;
 
-// 2D vector representing coordinates of a point
-using Point = pair<int, int>;
+// Function to smooth and connect discontinuous line segments
+vector<vector<int>> smoothLineSegments(const vector<vector<int>>& map) {
+    vector<vector<int>> smoothedMap = map;
 
-// Define the size of the map
-const int WIDTH = 250;
-const int HEIGHT = 350;
+    int rows = map.size();
+    int cols = map[0].size();
 
-// Function: Noise reduction processing
-vector<vector<int>> preprocessData(const vector<vector<double>>& data, double threshold)
-{
-    vector<vector<int>> binaryData(HEIGHT, vector<int>(WIDTH, 0));
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (map[i][j] == 1) {
+                // Check if the current point is disconnected from its neighbors
+                bool disconnected = false;
 
-    for (int i = 0; i < HEIGHT; i++) {
-        for (int j = 0; j < WIDTH; j++) {
-            if (data[i][j] >= threshold) {
-                binaryData[i][j] = 1;
-            }
-        }
-    }
+                // Check left neighbor
+                if (j > 0 && map[i][j - 1] == 0) {
+                    disconnected = true;
+                }
 
-    return binaryData;
-}
+                // Check right neighbor
+                if (j < cols - 1 && map[i][j + 1] == 0) {
+                    disconnected = true;
+                }
 
-// Function: Smooth the map
-vector<vector<double>> smoothMap(const vector<vector<int>>& map, double sigma)
-{
-    vector<vector<double>> smoothedMap(HEIGHT, vector<double>(WIDTH, 0.0));
+                // Check top neighbor
+                if (i > 0 && map[i - 1][j] == 0) {
+                    disconnected = true;
+                }
 
-    for (int i = 0; i < HEIGHT; i++) {
-        for (int j = 0; j < WIDTH; j++) {
-            // Apply Gaussian smoothing to each pixel by considering its surrounding pixels
-            for (int m = i - 1; m <= i + 1; m++) {
-                for (int n = j - 1; n <= j + 1; n++) {
-                    if (m >= 0 && m < HEIGHT && n >= 0 && n < WIDTH) {
-                        smoothedMap[i][j] += map[m][n];
+                // Check bottom neighbor
+                if (i < rows - 1 && map[i + 1][j] == 0) {
+                    disconnected = true;
+                }
+
+                // If the current point is disconnected, connect it to the neighbors
+                if (disconnected) {
+                    // Check left neighbor
+                    if (j > 0 && map[i][j - 1] == 0) {
+                        smoothedMap[i][j - 1] = 1;
+                    }
+
+                    // Check right neighbor
+                    if (j < cols - 1 && map[i][j + 1] == 0) {
+                        smoothedMap[i][j + 1] = 1;
+                    }
+
+                    // Check top neighbor
+                    if (i > 0 && map[i - 1][j] == 0) {
+                        smoothedMap[i - 1][j] = 1;
+                    }
+
+                    // Check bottom neighbor
+                    if (i < rows - 1 && map[i + 1][j] == 0) {
+                        smoothedMap[i + 1][j] = 1;
                     }
                 }
             }
-            smoothedMap[i][j] /= 9.0;
         }
     }
 
     return smoothedMap;
 }
 
-int main()
-{
-    // Assume there is noise data named visionData, which is a 2D array
-    vector<vector<double>> visionData(HEIGHT, vector<double>(WIDTH, 0.0));
-    // Fill the noise data
+int main() {
+    // Sample input map
+    vector<vector<int>> map = {
+       //here input the image from  vision processing
+    };
 
-    // Data preprocessing
-    vector<vector<int>> processedData = preprocessData(visionData, 0.5);
+    // Smooth and connect discontinuous line segments
+    vector<vector<int>> smoothedMap = smoothLineSegments(map);
 
-    // Smooth the map
-    vector<vector<double>> smoothedMap = smoothMap(processedData, 1.0);
-
-    // Display the processed data or perform further operations as needed
+    // Print the smoothed map
+    for (const auto& row : smoothedMap) {
+        for (const auto& val : row) {
+            cout << val << " ";
+        }
+        cout << endl;
+    }
 
     return 0;
 }
