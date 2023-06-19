@@ -1,54 +1,100 @@
 #include <iostream>
 #include <vector>
 
-std::vector<std::vector<int>> smoothLineSegments(const std::vector<std::vector<int>>& matrix) {
-    int rows = matrix.size();
-    int cols = matrix[0].size();
-    std::vector<std::vector<int>> outputMatrix(rows, std::vector<int>(cols, 0));
+const int WIDTH = 10;
+const int HEIGHT = 10;
 
-    for (int i = 0; i < rows; i++) {
-        int start_index = -1;
-        for (int j = 0; j < cols; j++) {
-            if (matrix[i][j] == 1) {
-                if (start_index == -1) {
-                    start_index = j;
+// Check if a pixel is surrounded by walls
+bool isIsolated(const std::vector<std::vector<int>>& image, int row, int col) {
+    if (row > 0 && image[row - 1][col] == 1 ||row > 1 && image[row - 2][col] == 1) {
+        return false;  // Check top pixel
+    }
+    if (row < HEIGHT - 1 && image[row + 1][col] == 1 || row < HEIGHT - 2 && image[row + 2][col] == 1) {
+        return false;  // Check bottom pixel
+    }
+    if (col > 0 && image[row][col - 1] == 1 || col > 1 && image[row][col - 2] == 1) {
+        return false;  // Check left pixel
+    }
+    if (col < WIDTH - 1 && image[row][col + 1] == 1 || col < WIDTH - 2 && image[row][col + 2] == 1) {
+        return false;  // Check right pixel
+    }
+    return true;
+}
+
+// Smooth the walls and remove isolated points
+void smoothWalls(std::vector<std::vector<int>>& image) {
+    std::vector<std::vector<int>> smoothedImage(image);
+
+    // Smooth each row
+    for (int col = 0; col < WIDTH; ++col) {
+        // Record the start and end position of the wall in the current column
+        int startRow = -1;
+        int endRow = -1;
+
+        // Iterate through each row in the current column
+        for (int row = 0; row < HEIGHT; ++row) {
+            // Check if it is a wall pixel
+            if (image[row][col] == 1) {
+                if (startRow == -1) {
+                    startRow = row;
                 }
-            } else {
-                if (start_index != -1) {
-                    int end_index = j - 1;
-                    for (int k = start_index; k <= end_index; k++) {
-                        outputMatrix[i][k] = 1;
-                    }
-                    start_index = -1;
-                }
+                endRow = row;
             }
         }
 
-        if (start_index != -1) {
-            int end_index = cols - 1;
-            for (int k = start_index; k <= end_index; k++) {
-                outputMatrix[i][k] = 1;
+        // Set the pixels between the start and end positions as walls in the smoothed image
+        if (startRow != -1 && endRow != -1) {
+            for (int row = startRow; row <= endRow; ++row) {
+                smoothedImage[row][col] = 1;
             }
         }
     }
 
-    return outputMatrix;
+    // Remove isolated points
+    for (int row = 0; row < HEIGHT; ++row) {
+        for (int col = 0; col < WIDTH; ++col) {
+            if (image[row][col] == 1 && isIsolated(image, row, col)) {
+                smoothedImage[row][col] = 0;
+            }
+        }
+    }
+
+    // Update the original image
+    image = smoothedImage;
 }
 
-int main() {
-    //input matrix here
-    
-
-    // Call the function
-    std::vector<std::vector<int>> outputMatrix = smoothLineSegments(inputMatrix);
-
-    // Print the output
-    for (const auto& row : outputMatrix) {
-        for (int value : row) {
-            std::cout << value << " ";
+// Print the image
+void printImage(const std::vector<std::vector<int>>& image) {
+    for (int row = 0; row < HEIGHT; ++row) {
+        for (int col = 0; col < WIDTH; ++col) {
+            std::cout << image[row][col] << " ";
         }
         std::cout << std::endl;
     }
+}
+
+int main() {
+    // Sample input
+    std::vector<std::vector<int>> image = {
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {1, 0, 0, 0, 1, 0, 0, 1, 0, 1},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {1, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {1, 0, 0, 1, 0, 0, 0, 1, 0, 0},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 1, 0, 0, 0, 1, 0, 1, 0, 0}
+    };
+
+    std::cout << "Original image:" << std::endl;
+    printImage(image);
+
+    smoothWalls(image);
+
+    std::cout << "Smoothed image:" << std::endl;
+    printImage(image);
 
     return 0;
 }
