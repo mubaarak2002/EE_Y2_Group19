@@ -17,7 +17,7 @@ let x;
 let y;
 let rovx;
 let rovy;
-let maze = Array.from({ length: 10 }).map(() => Array.from({ length: 10 }).fill(0));
+let maze = Array.from({ length: 500 }).map(() => Array.from({ length: 500 }).fill(0));
 let msg = 0;
 
 db.connect(function(err) {
