@@ -1,0 +1,83 @@
+<html>
+<canvas id="canvas" height="600" width="600"></canvas>
+<div id="container"></div>
+<body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+
+function drawLine(ctx, begin, end, stroke = 'black', width = 1) {
+    if (stroke) {
+        ctx.strokeStyle = stroke;
+    }
+
+    if (width) {
+        ctx.lineWidth = width;
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(...begin);
+    ctx.lineTo(...end);
+    ctx.stroke();
+}
+
+function redomaze(routing){
+  for(let i = 0; i < routing.length - 1; i++){
+    if (canvas.getContext) {
+      maze = canvas.getContext('2d');
+      //need to calculate end position here and send to function
+      //also need to remember the end position of previous line and use that for the start of the next line
+      drawLine(maze, [routing[i][0], routing[i][1]], [routing[i+1][0], routing[1+i][1]], 'green', 5);
+    }
+  }
+};
+
+// open socket
+const socket = io("/webpage");
+
+// listen for "connection" event from webpage
+socket.on("connection", (data) => {
+  console.log(data);
+});
+
+let startx;
+let starty;
+let shortstartx;
+let shortstarty;
+var sflag = 0;
+let routing = [];
+
+//listens for node data from the server
+socket.on('distance', function(data){
+  routing.push([data.x, data.y]);
+  if(routing.length > 1){
+    redomaze(routing);
+  }
+});
+
+
+socket.on('shortest', function(data){
+  //canvas2 = document.querySelector('#canvas');
+  if(sflag == 1){
+    spath.clearRect(0, 0, 600, 600);
+  };
+  redomaze(routing);
+  for(let i = 0; i < data.length-1; i++){
+    shortstartx = data[0][0]
+    shortstarty = data[0][1]
+    shortendx = data[i+1][0]
+    shortendy = data[i+1][1]
+    if (canvas.getContext) {
+      spath = canvas.getContext('2d');
+      //need to calculate end position here and send to function
+      //also need to remember the end position of previous line and use that for the start of the next line
+      drawLine(spath, [shortstartx, shortstarty], [shortendx, shortendy], 'red', 5);
+    }
+    shortstartx = shortendx
+    shortstarty = shortendy
+  }
+  sflag = 1;
+});
+
+</script>
+</body>
+</html>
