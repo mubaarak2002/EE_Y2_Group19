@@ -37,28 +37,29 @@ std::vector<std::vector<float> > generate_kernel(
     return kernel;
 }
 
-std::vector<std::vector<int> > filter_image(
+std::vector<std::vector<float> > filter_image(
     const std::vector<std::vector<int> >& image,
-    const std::vector<std::vector<float> >& kernel
+    const std::vector<std::vector<float> >& kernel,
+    const float& threshold
 ) {
-    std::vector<std::vector<int> > filtered_image;
+    std::vector<std::vector<float> > filtered_image;
     int kernel_size = kernel.size();
     int height = image.size();
     int width = image[0].size();
     for (int y = 0; y < height; y++) {
-        std::vector<int> line;
+        std::vector<float> line;
         for (int x = 0; x < width; x++) {
             float pixel = 0;
             for (int i = 0; i < kernel_size; i++) {
                 int y_offset = y + i - (kernel_size - 1)/2;
-                for (int j = 0; j < kernel_size + 1; j++) {
+                for (int j = 0; j < kernel_size; j++) {
                     int x_offset = x + j - (kernel_size - 1)/2;
                     if (!(x_offset < 0 || y_offset < 0 || x_offset >= width || y_offset >= height)) {
                         pixel += (image[y_offset][x_offset]-0.5) * kernel[i][j];
                     }
                 }
             }
-            if (pixel > 0) line.push_back(1);
+            if (pixel > threshold) line.push_back(1);
             else line.push_back(0);
         }
         filtered_image.push_back(line);
@@ -113,26 +114,29 @@ void print_int_Image(const std::vector<std::vector<int> >& image) {
 }
 
 int main() {
+    std::vector<std::vector<int> > image = read_from_file("fir_noise_filter_test.txt");
     int size;
-    float f_c;
+    float f_c, threshold;
     std::cout << "Kernel size: ";
     std::cin >> size; // best 5
     std::cout << "Cutoff frequency: ";
     std::cin >> f_c; // best 1
+    std::cout << "Threshold: ";
+    std::cin >> threshold;
     std::cout << std::endl;
     std::vector<std::vector<float> > kernel = generate_kernel(size, f_c);
-    std::vector<std::vector<int> > image = read_from_file("fir_noise_filter_test.txt");
 
     std::cout << "Kernel:" << std::endl;
     printImage(kernel);
+    std::cout << std::endl;
 
     std::cout << "Original image:" << std::endl;
     print_int_Image(image);
+    std::cout << std::endl;
 
-    std::vector<std::vector<int> > filtered_image = filter_image(image, kernel);
-
+    std::vector<std::vector<float> > filtered_image = filter_image(image, kernel, threshold);
     std::cout << "Smoothed image:" << std::endl;
-    print_int_Image(filtered_image);
+    printImage(filtered_image);
 
     return 0;
 }
