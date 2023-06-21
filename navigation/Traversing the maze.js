@@ -49,12 +49,12 @@ function collect_info(maze, posN, absN) {
     if (maze[posN[1]][posN[0]] == 0xff) {  // means the the current position has
         let wall = 0xf0;                // not been written so writing it in.
         let k = 0;
+        rotate(360);
         for (let i = 0; i < 4; i++) {
             // using loop to determine the four absolute directions
             // should be like:k should be the informatio from the light and transform it to relative direction;
             // the value of wall should be the value after a bitwise OR operation between val_wall and (k<<i), and assign the result back to val_wall.
             k = read_f(maze, posN, absN);
-            rotate(90);
             absN = (absN + 1) % 4;
             wall |= (k<<i);
         }   
