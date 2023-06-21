@@ -62,8 +62,8 @@ socket.on('shortest', function(data){
   };
   redomaze(routing);
   for(let i = 0; i < data.length-1; i++){
-    shortstartx = data[0][0]
-    shortstarty = data[0][1]
+    shortstartx = data[i][0]
+    shortstarty = data[i][1]
     shortendx = data[i+1][0]
     shortendy = data[i+1][1]
     if (canvas.getContext) {

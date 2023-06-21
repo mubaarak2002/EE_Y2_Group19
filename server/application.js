@@ -54,7 +54,6 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/maze.html");
 });
 
-let clientIDs = [];
 let webId = null;
 
 io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
@@ -66,17 +65,30 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
         socket.disconnect();
     }
 
+
+    let counter = 0;
   //for testing, we're going to send data to the client every second
   setInterval( function() {
     // getHistory(3);
-    var points = [[200, 200], [400, 200], [500, 500]];
+    var points;
     socket.emit("shortest", points);
     socket.emit("distance", {x: 200, y: 200});
     socket.emit("distance", {x: 400, y: 200});
     socket.emit("distance", {x: 200, y: 500});
-    points = [[600, 200], [200, 100], [300, 500]];
+    socket.emit("distance", {x: 300, y: 500});
+    socket.emit("distance", {x: 400, y: 400});
+    socket.emit("distance", {x: 450, y: 300});
+    if(counter % 3 == 0){
+      points = [[200, 200], [450, 300], [400, 400]];
+    }
+    else if(counter % 3 == 1){
+      points = [[200, 200], [400, 200], [200, 500]];
+    }
+    else{
+      points = [[200, 200], [400, 200], [200, 500], [300, 500]];
+    }
     socket.emit("shortest", points);
-    
+    counter++;
   }, 1000);
 
   socket.on("test", function (){
