@@ -18,7 +18,7 @@ let y;
 let rovx;
 let rovy;
 let maze = Array.from({ length: 500 }).map(() => Array.from({ length: 500 }).fill(0));
-let msg = "rotate 000 120";
+let msg = "0123456789";
 
 db.connect(function(err) {
     if (err) throw err;
