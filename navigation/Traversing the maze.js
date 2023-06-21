@@ -31,14 +31,14 @@ function abs_to_rel(absN, absT) {
     return rel;
 }
 
-function read_f(maze, posN, absN, unit = 5){
+function read_f(visionMaze, posN, absN, unit = 5){
     let look = posN;
     for (let j = 0; j < unit; j++) {
-        if (absN == 0) look[1]++;
+        if (absN == 0) look[1]--;
         if (absN == 1) look[0]++;
-        if (absN == 2) look[1]--;
+        if (absN == 2) look[1]++;
         if (absN == 3) look[0]--;
-        if (maze[look[1]][look[0]] == 1) return 1;
+        if (visionMaze[look[1]][look[0]] == 1) return 1;
     }
     return 0;
 }
@@ -76,13 +76,37 @@ function is_path(maze, posN, absT) {
     return !((maze[posN[1]][posN[0]]>>absT)&0x01);
 }
 
+function is_new(maze, posN, absN) {
+    if (absN == 0) return (maze[posN[1]-1][posN[0]]>>4)==0x0f;
+    if (absN == 1) return (maze[posN[1]][posN[0]+1]>>4)==0x0f;
+    if (absN == 2) return (maze[posN[1]+1][posN[0]]>>4)==0x0f;
+    if (absN == 3) return (maze[posN[1]][posN[0]-1]>>4)==0x0f;
+    return 0;
+}
+
+function search_dir(maze, posN, flag) {
+    let i;
+    let pre = maze[posN[1]][posN[0]] >> 4;
+    let back;
+    if (!flag) {    // if not sprinting, scan the four directions 
+        for (i = 0; i < 4; i++) {
+            if(is_path(maze, posN, i) && is_new(maze, posN, i)) {
+                return i;
+            }
+        }
+    }
+    if (pre<=1) back = pre + 2;
+    if (pre>=2) back = pre - 2;
+    return back;
+}
+
 // KEY FUNCTION SET: execution
 
 function go_to_next(posN, absN, absT) {
     // update the current coordinates and absolute direction
-    if (absT == 0) posN[1]++;
+    if (absT == 0) posN[1]--;
     if (absT == 1) posN[0]++;
-    if (absT == 2) posN[1]--;
+    if (absT == 2) posN[1]++;
     if (absT == 3) posN[0]--;
     absN = absT;
     // execute the actions
