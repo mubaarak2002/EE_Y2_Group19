@@ -18,7 +18,7 @@ let y;
 let rovx;
 let rovy;
 let maze = Array.from({ length: 500 }).map(() => Array.from({ length: 500 }).fill(0));
-let msg = 0;
+let msg = "rotate 000 120";
 
 db.connect(function(err) {
     if (err) throw err;
@@ -76,8 +76,7 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     socket.emit("distance", {x: 400, y: 200});
     socket.emit("distance", {x: 200, y: 500});
     points = [[600, 200], [200, 100], [300, 500]];
-    socket.emit("shortest", points);
-    msg += 1; 
+    socket.emit("shortest", points); 
   }, 1000);
 
 	socket.on("disconnect", function () {
