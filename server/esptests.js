@@ -4,6 +4,7 @@ const app = express();
 const mysql = require("mysql");
 const { connection } = require('websocket');
 const WebSocketServer = require('websocket').server;
+const { commandRover } = require('./roverinstructions.js')
 
 var db = mysql.createConnection({
     host: "localhost",
@@ -13,6 +14,8 @@ var db = mysql.createConnection({
   });
 
 let coordinates;
+let moveCord;
+let angle;
 let x;
 let y;
 let rovx;
