@@ -220,10 +220,10 @@ function get_path_and_distance(parent, start, end) {
 }
 
 // remember to use the algorithm maze, not the vision maze
-var temp = get_path_and_distance(bfs(maze, start, end));
-var result = temp[0];
-var dist = temp[1];
-console.log(result);
+// var temp = get_path_and_distance(bfs(maze, start, end));
+// var result = temp[0];
+// var dist = temp[1];
+// console.log(result);
 
 // var vertex = result[result.length - 1];
 // var prev = result[result.length - 2]
