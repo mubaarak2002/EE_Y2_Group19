@@ -116,13 +116,14 @@ function go_to_next(posN, absN, absT) {
     return posN, absT; // when calling this function, call: posN, absN = go_to_next(posN, absN, absT);
 }
 
-function explore(posN) {
+function explore(posN, vision_maze) {
     let start = posN;
     let absN = 0;
     let absT;
     let maze = initialise_map();
     while (true) {
-        maze = collect_info(maze, posN, absN);
+        // the maze in collect_info is the vision maze
+        maze = collect_info(vision_maze, posN, absN);
         absT = search_dir(maze, posN, 0);
         posN, absN = go_to_next(posN, absN, absT);
     }
