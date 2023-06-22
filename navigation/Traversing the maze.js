@@ -33,7 +33,8 @@ function abs_to_rel(absN, absT) {
 
 function read_f(visionMaze, posN, absN, unit = 5){
     let look = posN;
-    for (let j = 0; j < unit; j++) {
+    // add 3 to account for diagonals and turning rover around
+    for (let j = 0; j < unit + 3; j++) {
         if (absN == 0) look[1]--;
         if (absN == 1) look[0]++;
         if (absN == 2) look[1]++;
