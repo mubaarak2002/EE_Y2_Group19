@@ -73,9 +73,30 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
     }
 
   //for testing, we're going to send data to the client every second
+  var i = 0;
   setInterval( function() {
-    socket.emit("distance", {x: rovx, y: rovy});
-    socket.emit("shortest", result);
+    // socket.emit("distance", {x: rovx, y: rovy});
+    // socket.emit("shortest", result);
+    var points = [[200, 200], [400, 200], [500, 500]];
+    socket.emit("shortest", points);
+    socket.emit("distance", {x: 100, y: 100});
+    socket.emit("distance", {x: 300, y: 100});
+    socket.emit("distance", {x: 350, y: 350});
+    socket.emit("distance", {x: 350, y: 500});
+    socket.emit("distance", {x: 500, y: 350});
+    socket.emit("distance", {x: 100, y: 350});
+    socket.emit("shortest", points);
+    if((i%3) == 0){
+      points = [[100, 100], [100, 350]];
+    }
+    else if((i%3) == 1){
+      points = [[100, 100], [300, 100], [350, 350]];
+    }
+    else {
+      points = [[100, 100], [300, 100], [350, 350], [500, 350]];
+    }
+    i++;
+    socket.emit("shortest", points);
   }, 1000);
 
 	socket.on("disconnect", function () {
