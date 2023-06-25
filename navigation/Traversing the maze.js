@@ -32,7 +32,8 @@ function abs_to_rel(absN, absT) {
 }
 
 function read_f(visionMaze, posN, absN, unit = 5){
-    let look = posN;
+    let [x, y] = posN
+    let look = [x, y]
     // add 3 to account for diagonals and turning rover around
     for (let j = 0; j < unit + 3; j++) {
         if (absN == 0) look[1]--;
@@ -46,7 +47,7 @@ function read_f(visionMaze, posN, absN, unit = 5){
 
 // posN is an array containing the x [0] and y [1] coordinates
 // of the rover now
-function collect_info(maze, posN, absN) {
+function collect_info(maze, vision_maze, posN, absN) {
     if (maze[posN[1]][posN[0]] == 0xff) {  // means the the current position has
         let wall = 0xf0;                // not been written so writing it in.
         let k = 0;
@@ -55,7 +56,7 @@ function collect_info(maze, posN, absN) {
             // using loop to determine the four absolute directions
             // should be like:k should be the informatio from the light and transform it to relative direction;
             // the value of wall should be the value after a bitwise OR operation between val_wall and (k<<i), and assign the result back to val_wall.
-            k = read_f(maze, posN, absN);
+            k = read_f(vision_maze, posN, absN);
             absN = (absN + 1) % 4;
             wall |= (k<<i);
         }   
@@ -111,9 +112,10 @@ function go_to_next(posN, absN, absT) {
     if (absT == 3) posN[0]--;
     absN = absT;
     // execute the actions
-    move(posN[0], posN[1]);
+    move(posN[0]*5, posN[1]*5);
     
-    return posN, absT; // when calling this function, call: posN, absN = go_to_next(posN, absN, absT);
+    let arr = [posN, absN]
+    return arr; // when calling this function, call: posN, absN = go_to_next(posN, absN, absT);
 }
 
 function explore(posN, vision_maze) {
@@ -125,6 +127,8 @@ function explore(posN, vision_maze) {
         // the maze in collect_info is the vision maze
         maze = collect_info(vision_maze, posN, absN);
         absT = search_dir(maze, posN, 0);
-        posN, absN = go_to_next(posN, absN, absT);
+        let arr = go_to_next(posN, absN, absT);
+        posN = arr[0];
+        absN = arr[1];
     }
 }
