@@ -29,25 +29,21 @@ db.connect(function(err) {
     console.log("Connected!");
     });
 
-// function getHistory(vertex) {
-//   sql = "SELECT dist_from_start, previous_vertex, angle FROM dijkstra WHERE vertex = '" + vertex + "';";
+function getHistory(vertex) {
+sql = "SELECT dist_from_start, previous_vertex, angle FROM dijkstra WHERE vertex = '" + vertex + "';";
 //   db.query(sql, function(err, results){
-//       if (err){
-//       throw err;
-//       }
-//       results.forEach((row) => {
-//           distance = row.dist_from_start;
-//           previous = row.previous_vertex;
-//           angle = row.angle;
-//       });
-//       io.of("/webpage").emit("distance", {dist: distance, prev: previous, angle: angle});
-//       console.log (distance);
-//       console.log ("--------");
-//       // io.of("/webpage").emit("previous", previous);
-//       console.log (previous);
-//       console.log ("--------");
-//   });
-// }
+    if (err){
+    throw err;
+    }
+     results.forEach((row) => {
+        distance = row.dist_from_start;
+        previous = row.previous_vertex;
+        angle = row.angle;
+    });
+    io.of("/webpage").emit("distance", {dist: distance, prev: previous, angle: angle});
+    // io.of("/webpage").emit("previous", previous);
+ });
+}
 
 const server = http.createServer(app);
 
@@ -75,28 +71,8 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
   //for testing, we're going to send data to the client every second
   var i = 0;
   setInterval( function() {
-    // socket.emit("distance", {x: rovx, y: rovy});
-    // socket.emit("shortest", result);
-    var points = [[200, 200], [400, 200], [500, 500]];
-    socket.emit("shortest", points);
-    socket.emit("distance", {x: 100, y: 100});
-    socket.emit("distance", {x: 300, y: 100});
-    socket.emit("distance", {x: 350, y: 350});
-    socket.emit("distance", {x: 350, y: 500});
-    socket.emit("distance", {x: 500, y: 350});
-    socket.emit("distance", {x: 100, y: 350});
-    socket.emit("shortest", points);
-    if((i%3) == 0){
-      points = [[100, 100], [100, 350]];
-    }
-    else if((i%3) == 1){
-      points = [[100, 100], [300, 100], [350, 350]];
-    }
-    else {
-      points = [[100, 100], [300, 100], [350, 350], [500, 350]];
-    }
-    i++;
-    socket.emit("shortest", points);
+    socket.emit("distance", {x: rovx, y: rovy});
+    socket.emit("shortest", result);
   }, 1000);
 
 	socket.on("disconnect", function () {
@@ -105,108 +81,6 @@ io.of("/webpage").on('connection', function (socket) {// WebSocket Connection
 	});
 });
 
-//function closest_vertex(distances, start_vertex, unvisited){
-//  let closest = [0, 0, start_vertex];
-//
-//  let j = 0;
-//  while (distances[unvisited[j]] == 0) {
-//      j++;
-//      if (j == unvisited.length) {
-//          return "no path"
-//      }
-//  }
-//
-//  closest[0] = unvisited[j];
-//  closest[1] = distances[unvisited[j]];
-//
-//  for (let i = j+1; i < unvisited.length; i++) {
-//      if ((distances[unvisited[i]] != 0) && distances[unvisited[i]] < closest[1]) {
-//          closest[0] = unvisited[i];
-//          closest[1] = distances[unvisited[i]];
-//      }
-//  }
-//
-//  return closest;
-//}
-//
-//function get_path(parent, destination) {
-//  let path = [], vertex = destination;
-//
-//  while (vertex != -1) {
-//      path.unshift(vertex);
-//      vertex = parent[vertex];
-//  }
-//
-//  return path;
-//}
-//
-//function dijkstra(adjacency, start, end) {
-//  let num_vertices = adjacency.length, parent = [], unvisited = [], visited = [start];
-//
-//  for (let i = 0; i < num_vertices; i++) {
-//      if (i != start) {
-//          unvisited.push(i);
-//      }
-//      parent.push(-1);
-//  }
-//
-//  let closest, next_closest;
-//
-//  for (let i = 0; i < num_vertices - 1; i++) {
-//      closest = closest_vertex(adjacency[visited[0]], visited[0], unvisited);
-//      for (let j = 1; j < visited.length; j++) {
-//          next_closest = closest_vertex(adjacency[visited[j]], visited[j], unvisited);
-//          if ((closest == "no path") || (next_closest[1] < closest[1])) {
-//              closest = next_closest;
-//          }
-//      }
-//      if (closest == "no path") {
-//          return closest;
-//      }
-//      let index = unvisited.indexOf(closest[0]);
-//      unvisited.splice(index, 1);
-//      visited.push(closest[0]);
-//      parent[closest[0]] = closest[2];
-//
-//
-//      if (closest[0] == end) return get_path(parent, end);
-//
-//  }
-//
-//  return "incomplete matrix";
-//}
-//
-//function get_distance(matrix, path) {
-//  let distance = 0;
-//  for (let i = 1; i < path.length; i++) {
-//      distance += matrix[path[i-1]][path[i]];
-//  }
-//
-//  return distance;
-//}
-//
-//var matrix = [
-//  [0, 10, 3, 0, 0],
-//  [0, 0, 1, 2, 0],
-//  [0, 4, 0, 8, 2],
-//  [0, 0, 0, 0, 7],
-//  [0, 0, 0, 7, 0]
-//];
-//
-//var result = dijkstra(matrix, 0, 3);
-
-
-// the four directions are defined as
-//
-//  0
-// 3 1
-//  2
-
-// each element corresponds to an area of the maze
-// the first bit of the element encodes information of the
-// top side of the area
-// etc. for each side of the area
-    // 0 corresponds to explo
     function initialise_map() {
       let i, j, line = [], maze = [];
       for (i = 0; i < 5000; i++) {
